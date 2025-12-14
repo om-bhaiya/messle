@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
 import MessCard from "../components/MessCard";
 import { mockMesses } from "../data/mockData";
 
@@ -35,93 +34,125 @@ const HomePage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#FFF8E7]">
-      {/* Header - Match reference design */}
-      <div className="bg-darkBrown text-white px-4 pt-6 pb-12">
-        <h1 className="text-2xl font-bold mb-1">Messes in Kota</h1>
-        <p className="text-gray-300 text-sm">Prices, ratings, today's food</p>
+    <div
+      style={{ background: "#f7f5f2", minHeight: "100vh", color: "#3b2f2f" }}
+    >
+      {/* Top Bar */}
+      <div
+        style={{
+          background: "#3b2f2f",
+          color: "white",
+          padding: "14px 16px",
+        }}
+      >
+        <h1
+          style={{ fontSize: "18px", fontWeight: "600", marginBottom: "2px" }}
+        >
+          Messes in Kota
+        </h1>
+        <span style={{ fontSize: "12px", opacity: "0.8" }}>
+          Prices, ratings, today's food
+        </span>
       </div>
 
-      {/* Filters - Styled like reference */}
-      <div className="px-4 -mt-8 mb-4">
-        <div className="bg-white rounded-xl shadow-lg p-4">
-          <div className="grid grid-cols-3 gap-2">
-            {/* Area Filter */}
-            <div className="relative">
-              <select
-                value={selectedArea}
-                onChange={(e) => setSelectedArea(e.target.value)}
-                className="w-full appearance-none bg-white border border-gray-300 rounded-lg px-3 py-2.5 pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-turmeric"
-              >
-                <option value="all">All Areas</option>
-                {areas
-                  .filter((a) => a !== "all")
-                  .map((area) => (
-                    <option key={area} value={area}>
-                      {area}
-                    </option>
-                  ))}
-              </select>
-              <ChevronDown
-                className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500"
-                size={16}
-              />
-            </div>
+      {/* Filters */}
+      <div
+        style={{
+          background: "white",
+          padding: "12px",
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "8px",
+          borderBottom: "1px solid #e0e0e0",
+        }}
+      >
+        <select
+          value={selectedArea}
+          onChange={(e) => setSelectedArea(e.target.value)}
+          style={{
+            padding: "8px",
+            fontSize: "13px",
+            borderRadius: "6px",
+            border: "1px solid #ccc",
+            background: "#fff",
+          }}
+        >
+          <option value="all">All Areas</option>
+          {areas
+            .filter((a) => a !== "all")
+            .map((area) => (
+              <option key={area} value={area}>
+                {area}
+              </option>
+            ))}
+        </select>
 
-            {/* Price Filter */}
-            <div className="relative">
-              <select
-                value={selectedPrice}
-                onChange={(e) => setSelectedPrice(e.target.value)}
-                className="w-full appearance-none bg-white border border-gray-300 rounded-lg px-3 py-2.5 pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-turmeric"
-              >
-                <option value="all">Any Price</option>
-                <option value="0-2000">Under ₹2000</option>
-                <option value="2000-2500">₹2000-2500</option>
-                <option value="2500-3000">₹2500-3000</option>
-                <option value="3000+">₹3000+</option>
-              </select>
-              <ChevronDown
-                className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500"
-                size={16}
-              />
-            </div>
+        <select
+          value={selectedPrice}
+          onChange={(e) => setSelectedPrice(e.target.value)}
+          style={{
+            padding: "8px",
+            fontSize: "13px",
+            borderRadius: "6px",
+            border: "1px solid #ccc",
+            background: "#fff",
+          }}
+        >
+          <option value="all">Any Price</option>
+          <option value="0-2000">Under ₹2000</option>
+          <option value="2000-2500">₹2000 - ₹2500</option>
+          <option value="2500-3000">₹2500 - ₹3000</option>
+          <option value="3000+">Above ₹3000</option>
+        </select>
 
-            {/* Rating Filter */}
-            <div className="relative">
-              <select
-                value={selectedRating}
-                onChange={(e) => setSelectedRating(e.target.value)}
-                className="w-full appearance-none bg-white border border-gray-300 rounded-lg px-3 py-2.5 pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-turmeric"
-              >
-                <option value="all">Any Rating</option>
-                <option value="4+">4+ ⭐</option>
-                <option value="3-4">3-4 ⭐</option>
-                <option value="3-">Below 3 ⭐</option>
-              </select>
-              <ChevronDown
-                className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500"
-                size={16}
-              />
-            </div>
-          </div>
-        </div>
+        <select
+          value={selectedRating}
+          onChange={(e) => setSelectedRating(e.target.value)}
+          style={{
+            padding: "8px",
+            fontSize: "13px",
+            borderRadius: "6px",
+            border: "1px solid #ccc",
+            background: "#fff",
+          }}
+        >
+          <option value="all">Any Rating</option>
+          <option value="4+">4★ & above</option>
+          <option value="3-4">3★ & above</option>
+          <option value="3-">Below 3★</option>
+        </select>
       </div>
 
       {/* Mess List */}
-      <div className="px-4 pb-20">
+      <div style={{ padding: "14px" }}>
         {filteredMesses.length > 0 ? (
           filteredMesses.map((mess) => <MessCard key={mess.id} mess={mess} />)
         ) : (
-          <div className="text-center py-12 bg-white rounded-xl shadow-md">
-            <p className="text-gray-500 mb-3">No messes found</p>
+          <div
+            style={{
+              background: "white",
+              borderRadius: "12px",
+              padding: "40px 14px",
+              textAlign: "center",
+            }}
+          >
+            <p style={{ color: "#777", marginBottom: "12px" }}>
+              No messes found
+            </p>
             <button
               onClick={() => {
                 setSelectedArea("all");
                 setSelectedPrice("all");
                 setSelectedRating("all");
               }}
-              className="text-turmeric font-semibold"
+              style={{
+                background: "#f4c430",
+                border: "none",
+                padding: "9px 20px",
+                borderRadius: "8px",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
             >
               Clear Filters
             </button>
@@ -130,7 +161,14 @@ const HomePage = () => {
       </div>
 
       {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 text-center text-xs text-gray-500">
+      <div
+        style={{
+          textAlign: "center",
+          padding: "16px",
+          fontSize: "12px",
+          color: "#777",
+        }}
+      >
         Simple by design. Built for daily use.
       </div>
     </div>

@@ -1,25 +1,26 @@
-import { Star, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const MessCard = ({ mess }) => {
   const navigate = useNavigate();
 
   const getTypeBadge = () => {
+    const baseStyle = {
+      fontSize: "11px",
+      padding: "4px 10px",
+      borderRadius: "20px",
+      color: "white",
+      whiteSpace: "nowrap",
+    };
+
     if (mess.type === "veg") {
-      return (
-        <span className="bg-green-600 text-white text-xs px-2.5 py-1 rounded-full font-medium">
-          Veg
-        </span>
-      );
+      return <span style={{ ...baseStyle, background: "#2e7d32" }}>Veg</span>;
     } else if (mess.type === "non-veg") {
       return (
-        <span className="bg-brick text-white text-xs px-2.5 py-1 rounded-full font-medium">
-          Non-Veg
-        </span>
+        <span style={{ ...baseStyle, background: "#8b1e1e" }}>Non-Veg</span>
       );
     } else {
       return (
-        <span className="bg-brick text-white text-xs px-2.5 py-1 rounded-full font-medium">
+        <span style={{ ...baseStyle, background: "#8b1e1e" }}>
           Veg + Non-Veg
         </span>
       );
@@ -27,46 +28,95 @@ const MessCard = ({ mess }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 mb-3">
+    <div
+      style={{
+        background: "white",
+        borderRadius: "12px",
+        padding: "14px",
+        marginBottom: "14px",
+        border: "1px solid #eee",
+      }}
+    >
       {/* Header */}
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex-1">
-          <h3 className="text-lg font-bold text-darkBrown">{mess.name}</h3>
-          <div className="flex items-center text-gray-600 text-sm mt-0.5">
-            <MapPin size={13} className="mr-1" />
-            <span>{mess.area}</span>
-          </div>
-        </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: "6px",
+        }}
+      >
+        <div style={{ fontSize: "16px", fontWeight: "600" }}>{mess.name}</div>
         {getTypeBadge()}
       </div>
 
-      {/* Rating */}
-      <div className="flex items-center mb-3">
-        <Star size={15} className="fill-turmeric text-turmeric mr-1" />
-        <span className="font-bold text-darkBrown text-sm">{mess.rating}</span>
-        <span className="text-gray-500 text-sm ml-1">
-          ({mess.totalRatings})
-        </span>
+      {/* Area */}
+      <div
+        style={{
+          fontSize: "12px",
+          color: "#777",
+          marginBottom: "10px",
+        }}
+      >
+        📍{mess.area}
       </div>
 
-      {/* Price */}
-      <div className="mb-3">
-        <p className="text-xl font-bold text-darkBrown">
+      {/* Stats */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "12px",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "14px",
+            fontWeight: "600",
+            color: "#8b1e1e",
+          }}
+        >
+          ★ {mess.rating} ({mess.totalRatings})
+        </div>
+        <div
+          style={{
+            fontSize: "14px",
+            fontWeight: "500",
+          }}
+        >
           ₹{mess.monthlyPrice} / month
-        </p>
+        </div>
       </div>
 
       {/* Buttons */}
-      <div className="grid grid-cols-2 gap-2">
+      <div style={{ display: "flex", gap: "8px" }}>
         <button
           onClick={() => navigate(`/mess/${mess.id}`)}
-          className="bg-turmeric text-darkBrown py-2.5 rounded-lg font-semibold hover:bg-yellow-500 transition-all active:scale-95"
+          style={{
+            flex: 1,
+            padding: "9px",
+            fontSize: "13px",
+            borderRadius: "8px",
+            border: "none",
+            cursor: "pointer",
+            background: "#f4c430",
+            fontWeight: "600",
+          }}
         >
           View
         </button>
         <button
           onClick={() => (window.location.href = `tel:${mess.phone}`)}
-          className="bg-gray-200 text-darkBrown py-2.5 rounded-lg font-semibold hover:bg-gray-300 transition-all active:scale-95"
+          style={{
+            flex: 1,
+            padding: "9px",
+            fontSize: "13px",
+            borderRadius: "8px",
+            border: "none",
+            cursor: "pointer",
+            background: "#eee",
+          }}
         >
           Call
         </button>
