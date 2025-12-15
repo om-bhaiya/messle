@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mess Onboarding Form</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #8b1e1e 0%, #3b2f2f 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 700px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      h1 {
+        color: #3b2f2f;
+        margin-bottom: 10px;
+        font-size: 28px;
+      }
+
+      .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 14px;
+      }
+
+      .form-group {
+        margin-bottom: 25px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #3b2f2f;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      input[type="tel"],
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+      }
+
+      input[type="text"]:focus,
+      input[type="number"]:focus,
+      input[type="tel"]:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #f4c430;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .radio-group {
+        display: flex;
+        gap: 20px;
+        margin-top: 8px;
+      }
+
+      .radio-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #f4c430;
+      }
+
+      .service-item {
+        background: #fef9f0;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #f4c430;
+      }
+
+      .service-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .service-header input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: #f4c430;
+      }
+
+      .service-header label {
+        margin: 0;
+        cursor: pointer;
+        color: #3b2f2f;
+      }
+
+      .timing-inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .timing-input {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .timing-input label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #666;
+        margin-bottom: 5px;
+      }
+
+      .timing-input input {
+        padding: 8px;
+        font-size: 13px;
+      }
+
+      .location-section {
+        background: #fef9f0;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        border: 2px solid #f4c430;
+      }
+
+      .location-btn {
+        background: #f4c430;
+        color: #3b2f2f;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+        width: 100%;
+        margin-bottom: 15px;
+      }
+
+      .location-btn:hover {
+        background: #e0b328;
+      }
+
+      .location-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        color: #666;
+      }
+
+      .coordinates-display {
+        background: white;
+        padding: 12px;
+        border-radius: 6px;
+        margin-top: 10px;
+        font-family: monospace;
+        font-size: 13px;
+        color: #3b2f2f;
+        border: 1px solid #f4c430;
+      }
+
+      .coordinates-display.hidden {
+        display: none;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+      }
+
+      .submit-btn,
+      .export-btn {
+        flex: 1;
+        padding: 14px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .submit-btn {
+        background: #10b981;
+        color: white;
+      }
+
+      .submit-btn:hover {
+        background: #059669;
+      }
+
+      .export-btn {
+        background: #8b1e1e;
+        color: white;
+      }
+
+      .export-btn:hover {
+        background: #6d1717;
+      }
+
+      .success-message {
+        background: #d1fae5;
+        color: #065f46;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: none;
+        border-left: 4px solid #10b981;
+      }
+
+      .success-message.show {
+        display: block;
+      }
+
+      .error-message {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: none;
+        border-left: 4px solid #8b1e1e;
+      }
+
+      .error-message.show {
+        display: block;
+      }
+
+      .required {
+        color: #8b1e1e;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🍽️ Mess Onboarding Form</h1>
+      <p class="subtitle">Fill in the details to onboard a new mess</p>
+
+      <div class="success-message" id="successMessage">
+        ✅ Mess details saved successfully!
+      </div>
+
+      <div class="error-message" id="errorMessage">
+        ❌ Please fill in all required fields
+      </div>
+
+      <form id="messForm">
+        <!-- Mess Name -->
+        <div class="form-group">
+          <label>Mess Name <span class="required">*</span></label>
+          <input
+            type="text"
+            id="messName"
+            required
+            placeholder="Enter mess name"
+          />
+        </div>
+
+        <!-- Address -->
+        <div class="form-group">
+          <label>Address <span class="required">*</span></label>
+          <textarea
+            id="address"
+            required
+            placeholder="Enter full address"
+          ></textarea>
+        </div>
+
+        <!-- Veg/Non-Veg -->
+        <div class="form-group">
+          <label>Type <span class="required">*</span></label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input
+                type="radio"
+                id="veg"
+                name="messType"
+                value="veg"
+                required
+              />
+              <label for="veg">🥗 Veg</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="nonveg" name="messType" value="non-veg" />
+              <label for="nonveg">🍗 Non-Veg</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly Charges -->
+        <div class="form-group">
+          <label>Monthly Charges (₹) <span class="required">*</span></label>
+          <input
+            type="number"
+            id="monthlyCharges"
+            required
+            placeholder="Enter monthly charges"
+          />
+        </div>
+
+        <!-- Per Diet Charges -->
+        <div class="form-group">
+          <label>Per Diet Charges (₹) <span class="required">*</span></label>
+          <input
+            type="number"
+            id="perDietCharges"
+            required
+            placeholder="Enter per diet charges"
+          />
+        </div>
+
+        <!-- Services -->
+        <div class="form-group">
+          <label>Services & Timings <span class="required">*</span></label>
+
+          <div class="service-item">
+            <div class="service-header">
+              <input
+                type="checkbox"
+                id="breakfastCheck"
+                onchange="toggleService('breakfast')"
+              />
+              <label for="breakfastCheck">🌅 Breakfast</label>
+            </div>
+            <div
+              class="timing-inputs"
+              id="breakfastTimings"
+              style="display: none"
+            >
+              <div class="timing-input">
+                <label>Start Time</label>
+                <input
+                  type="text"
+                  id="breakfastStart"
+                  placeholder="e.g., 7:00 AM"
+                />
+              </div>
+              <div class="timing-input">
+                <label>End Time</label>
+                <input
+                  type="text"
+                  id="breakfastEnd"
+                  placeholder="e.g., 9:30 AM"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="service-item">
+            <div class="service-header">
+              <input
+                type="checkbox"
+                id="lunchCheck"
+                onchange="toggleService('lunch')"
+              />
+              <label for="lunchCheck">☀️ Lunch</label>
+            </div>
+            <div class="timing-inputs" id="lunchTimings" style="display: none">
+              <div class="timing-input">
+                <label>Start Time</label>
+                <input
+                  type="text"
+                  id="lunchStart"
+                  placeholder="e.g., 12:00 PM"
+                />
+              </div>
+              <div class="timing-input">
+                <label>End Time</label>
+                <input type="text" id="lunchEnd" placeholder="e.g., 3:00 PM" />
+              </div>
+            </div>
+          </div>
+
+          <div class="service-item">
+            <div class="service-header">
+              <input
+                type="checkbox"
+                id="dinnerCheck"
+                onchange="toggleService('dinner')"
+              />
+              <label for="dinnerCheck">🌙 Dinner</label>
+            </div>
+            <div class="timing-inputs" id="dinnerTimings" style="display: none">
+              <div class="timing-input">
+                <label>Start Time</label>
+                <input
+                  type="text"
+                  id="dinnerStart"
+                  placeholder="e.g., 7:00 PM"
+                />
+              </div>
+              <div class="timing-input">
+                <label>End Time</label>
+                <input
+                  type="text"
+                  id="dinnerEnd"
+                  placeholder="e.g., 10:00 PM"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Close Date -->
+        <div class="form-group">
+          <label>Close Date/Days</label>
+          <input
+            type="text"
+            id="closeDate"
+            placeholder="e.g., Sundays, 1st of every month"
+          />
+        </div>
+
+        <!-- Phone Number -->
+        <div class="form-group">
+          <label>Phone Number <span class="required">*</span></label>
+          <input
+            type="tel"
+            id="phoneNumber"
+            required
+            placeholder="Enter phone number"
+          />
+        </div>
+
+        <!-- Location -->
+        <div class="location-section">
+          <label>Mess Location <span class="required">*</span></label>
+          <button
+            type="button"
+            class="location-btn"
+            id="getLocationBtn"
+            onclick="getLocation()"
+          >
+            📍 Get Current Location
+          </button>
+          <div class="coordinates-display hidden" id="coordinatesDisplay">
+            <div><strong>Latitude:</strong> <span id="latDisplay">-</span></div>
+            <div>
+              <strong>Longitude:</strong> <span id="longDisplay">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="button-group">
+          <button type="submit" class="submit-btn">💾 Save Mess</button>
+          <button type="button" class="export-btn" onclick="exportToJSON()">
+            📥 Export JSON
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      let currentCoordinates = null;
+      let savedMesses = [];
+
+      // Toggle service timings visibility
+      function toggleService(service) {
+        const checkbox = document.getElementById(service + "Check");
+        const timings = document.getElementById(service + "Timings");
+        timings.style.display = checkbox.checked ? "grid" : "none";
+      }
+
+      // Get current location
+      function getLocation() {
+        const btn = document.getElementById("getLocationBtn");
+        const coordDisplay = document.getElementById("coordinatesDisplay");
+
+        if (!navigator.geolocation) {
+          alert("Geolocation is not supported by your browser");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "🔄 Getting location...";
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            currentCoordinates = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            };
+
+            document.getElementById("latDisplay").textContent =
+              currentCoordinates.latitude.toFixed(6);
+            document.getElementById("longDisplay").textContent =
+              currentCoordinates.longitude.toFixed(6);
+            coordDisplay.classList.remove("hidden");
+
+            btn.disabled = false;
+            btn.textContent = "✅ Location Captured";
+            btn.style.background = "#10b981";
+          },
+          (error) => {
+            alert("Error getting location: " + error.message);
+            btn.disabled = false;
+            btn.textContent = "📍 Get Current Location";
+          }
+        );
+      }
+
+      // Handle form submission
+      document
+        .getElementById("messForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const errorMsg = document.getElementById("errorMessage");
+          const successMsg = document.getElementById("successMessage");
+
+          errorMsg.classList.remove("show");
+          successMsg.classList.remove("show");
+
+          // Check if location is captured
+          if (!currentCoordinates) {
+            errorMsg.textContent = "❌ Please capture the mess location first";
+            errorMsg.classList.add("show");
+            return;
+          }
+
+          // Get services
+          const services = [];
+          const serviceTypes = ["breakfast", "lunch", "dinner"];
+
+          serviceTypes.forEach((type) => {
+            const checkbox = document.getElementById(type + "Check");
+            if (checkbox.checked) {
+              const startTime = document.getElementById(type + "Start").value;
+              const endTime = document.getElementById(type + "End").value;
+
+              services.push({
+                name: type.charAt(0).toUpperCase() + type.slice(1),
+                startTime: startTime,
+                endTime: endTime,
+              });
+            }
+          });
+
+          if (services.length === 0) {
+            errorMsg.textContent = "❌ Please select at least one service";
+            errorMsg.classList.add("show");
+            return;
+          }
+
+          // Get mess type
+          const messType = document.querySelector(
+            'input[name="messType"]:checked'
+          ).value;
+
+          // Create mess object
+          const messData = {
+            messName: document.getElementById("messName").value,
+            address: document.getElementById("address").value,
+            type: messType,
+            monthlyCharges: parseFloat(
+              document.getElementById("monthlyCharges").value
+            ),
+            perDietCharges: parseFloat(
+              document.getElementById("perDietCharges").value
+            ),
+            services: services,
+            closeDate: document.getElementById("closeDate").value,
+            phoneNumber: document.getElementById("phoneNumber").value,
+            coordinates: currentCoordinates,
+          };
+
+          // Save to array
+          savedMesses.push(messData);
+
+          // Show success message
+          successMsg.classList.add("show");
+
+          // Reset form
+          document.getElementById("messForm").reset();
+          currentCoordinates = null;
+          document.getElementById("coordinatesDisplay").classList.add("hidden");
+          document.getElementById("getLocationBtn").textContent =
+            "📍 Get Current Location";
+          document.getElementById("getLocationBtn").style.background =
+            "#667eea";
+
+          // Hide service timings
+          serviceTypes.forEach((type) => {
+            document.getElementById(type + "Timings").style.display = "none";
+          });
+
+          // Scroll to top
+          window.scrollTo({ top: 0, behavior: "smooth" });
+
+          // Hide success message after 3 seconds
+          setTimeout(() => {
+            successMsg.classList.remove("show");
+          }, 3000);
+        });
+
+      // Export to JSON
+      function exportToJSON() {
+        if (savedMesses.length === 0) {
+          alert("No mess data to export. Please save at least one mess first.");
+          return;
+        }
+
+        const dataStr = JSON.stringify(savedMesses, null, 2);
+        const dataBlob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "mess_data_" + new Date().getTime() + ".json";
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+    </script>
+  </body>
+</html>
