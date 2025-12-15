@@ -479,6 +479,14 @@
           <button type="button" class="export-btn" onclick="exportToJSON()">
             📥 Export JSON
           </button>
+          <button
+            type="button"
+            class="export-btn"
+            onclick="clearAllData()"
+            style="background: #ef4444"
+          >
+            🗑️ Clear All
+          </button>
         </div>
       </form>
     </div>
@@ -486,6 +494,22 @@
     <script>
       let currentCoordinates = null;
       let savedMesses = [];
+
+      // Load saved messes from localStorage on page load
+      window.addEventListener("DOMContentLoaded", function () {
+        const stored = localStorage.getItem("savedMesses");
+        if (stored) {
+          savedMesses = JSON.parse(stored);
+          console.log(
+            "Loaded " + savedMesses.length + " saved messes from storage"
+          );
+        }
+      });
+
+      // Save to localStorage whenever a new mess is added
+      function saveToLocalStorage() {
+        localStorage.setItem("savedMesses", JSON.stringify(savedMesses));
+      }
 
       // Toggle service timings visibility
       function toggleService(service) {
@@ -597,10 +621,14 @@
             coordinates: currentCoordinates,
           };
 
-          // Save to array
+          // Save to array and localStorage
           savedMesses.push(messData);
+          saveToLocalStorage();
 
           // Show success message
+          successMsg.textContent =
+            "✅ Mess details saved successfully! Total saved: " +
+            savedMesses.length;
           successMsg.classList.add("show");
 
           // Reset form
@@ -610,7 +638,7 @@
           document.getElementById("getLocationBtn").textContent =
             "📍 Get Current Location";
           document.getElementById("getLocationBtn").style.background =
-            "#667eea";
+            "#F4C430";
 
           // Hide service timings
           serviceTypes.forEach((type) => {
@@ -641,6 +669,19 @@
         link.download = "mess_data_" + new Date().getTime() + ".json";
         link.click();
         URL.revokeObjectURL(url);
+      }
+
+      // Clear all data (optional - you can add a button for this)
+      function clearAllData() {
+        if (
+          confirm(
+            "Are you sure you want to delete all saved mess data? This cannot be undone."
+          )
+        ) {
+          savedMesses = [];
+          localStorage.removeItem("savedMesses");
+          alert("All data cleared successfully!");
+        }
       }
     </script>
   </body>
