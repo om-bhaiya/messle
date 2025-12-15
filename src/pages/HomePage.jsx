@@ -1,12 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MessCard from "../components/MessCard";
-import { mockMesses } from "../data/mockData";
+import { getMessesByCity } from "../services/database";
 
 const HomePage = () => {
-  const [messes, setMesses] = useState(mockMesses);
+  const [messes, setMesses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedArea, setSelectedArea] = useState("all");
   const [selectedPrice, setSelectedPrice] = useState("all");
   const [selectedRating, setSelectedRating] = useState("all");
+
+  // Fetch messes from Firebase
+  useEffect(() => {
+    const fetchMesses = async () => {
+      setLoading(true);
+      const data = await getMessesByCity("Kota");
+      setMesses(data);
+      setLoading(false);
+    };
+
+    fetchMesses();
+  }, []);
 
   const areas = ["all", ...new Set(messes.map((m) => m.area))];
 
@@ -32,6 +45,42 @@ const HomePage = () => {
 
     return areaMatch && priceMatch && ratingMatch;
   });
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          background: "#f7f5f2",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              border: "4px solid #f4c430",
+              borderTop: "4px solid transparent",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto 12px",
+            }}
+          />
+          <p style={{ color: "#3b2f2f", fontSize: "14px" }}>
+            Loading messes...
+          </p>
+        </div>
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -137,25 +186,29 @@ const HomePage = () => {
             }}
           >
             <p style={{ color: "#777", marginBottom: "12px" }}>
-              No messes found
+              {messes.length === 0
+                ? "No messes available in Kota"
+                : "No messes found with selected filters"}
             </p>
-            <button
-              onClick={() => {
-                setSelectedArea("all");
-                setSelectedPrice("all");
-                setSelectedRating("all");
-              }}
-              style={{
-                background: "#f4c430",
-                border: "none",
-                padding: "9px 20px",
-                borderRadius: "8px",
-                fontWeight: "600",
-                cursor: "pointer",
-              }}
-            >
-              Clear Filters
-            </button>
+            {messes.length > 0 && (
+              <button
+                onClick={() => {
+                  setSelectedArea("all");
+                  setSelectedPrice("all");
+                  setSelectedRating("all");
+                }}
+                style={{
+                  background: "#f4c430",
+                  border: "none",
+                  padding: "9px 20px",
+                  borderRadius: "8px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                }}
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
         )}
       </div>

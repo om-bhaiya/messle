@@ -1,20 +1,88 @@
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, Phone, MapPin, Edit } from "lucide-react";
-import { mockMesses, mockMenus } from "../data/mockData";
+import { getMessById, getTodayMenu } from "../services/database";
 
 const MessDetailPage = () => {
   const { messId } = useParams();
   const navigate = useNavigate();
 
-  const mess = mockMesses.find((m) => m.id === messId);
-  const todayMenu = mockMenus[messId];
+  const [mess, setMess] = useState(null);
+  const [todayMenu, setTodayMenu] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const messData = await getMessById(messId);
+      const menuData = await getTodayMenu(messId);
+
+      setMess(messData);
+      setTodayMenu(menuData);
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [messId]);
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          background: "#f7f5f2",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              border: "4px solid #f4c430",
+              borderTop: "4px solid transparent",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto 12px",
+            }}
+          />
+          <p style={{ color: "#3b2f2f", fontSize: "14px" }}>Loading...</p>
+        </div>
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   if (!mess) {
     return (
-      <div style={{ padding: "20px", textAlign: "center" }}>
-        <p>Mess not found</p>
-        <button onClick={() => navigate("/")} style={{ marginTop: "10px" }}>
-          Go Back
+      <div
+        style={{
+          padding: "20px",
+          textAlign: "center",
+          background: "#f7f5f2",
+          minHeight: "100vh",
+        }}
+      >
+        <p style={{ marginTop: "40px", color: "#777" }}>Mess not found</p>
+        <button
+          onClick={() => navigate("/")}
+          style={{
+            marginTop: "20px",
+            background: "#f4c430",
+            border: "none",
+            padding: "10px 20px",
+            borderRadius: "8px",
+            fontWeight: "600",
+            cursor: "pointer",
+          }}
+        >
+          Go Back Home
         </button>
       </div>
     );
@@ -252,7 +320,7 @@ const MessDetailPage = () => {
         >
           Timings
         </h3>
-        {mess.services.includes("breakfast") && (
+        {mess.services.includes("breakfast") && mess.timings.breakfast && (
           <div
             style={{
               display: "flex",
@@ -266,7 +334,7 @@ const MessDetailPage = () => {
             </span>
           </div>
         )}
-        {mess.services.includes("lunch") && (
+        {mess.services.includes("lunch") && mess.timings.lunch && (
           <div
             style={{
               display: "flex",
@@ -280,7 +348,7 @@ const MessDetailPage = () => {
             </span>
           </div>
         )}
-        {mess.services.includes("dinner") && (
+        {mess.services.includes("dinner") && mess.timings.dinner && (
           <div
             style={{
               display: "flex",
