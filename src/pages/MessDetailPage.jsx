@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, Phone, MapPin, Edit } from "lucide-react";
 import { getMessById, getTodayMenu } from "../services/database";
+import { saveRating, hasUserRated, getUserRating } from "../services/ratings";
 
 const MessDetailPage = () => {
   const { messId } = useParams();
@@ -10,6 +11,9 @@ const MessDetailPage = () => {
   const [mess, setMess] = useState(null);
   const [todayMenu, setTodayMenu] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userRating, setUserRating] = useState(0);
+  const [hasRated, setHasRated] = useState(false);
+  const [ratingLoading, setRatingLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -19,11 +23,46 @@ const MessDetailPage = () => {
 
       setMess(messData);
       setTodayMenu(menuData);
+
+      // Check if user already rated
+      const rated = hasUserRated(messId);
+      setHasRated(rated);
+
+      if (rated) {
+        const rating = getUserRating(messId);
+        setUserRating(rating);
+      }
+
       setLoading(false);
     };
 
     fetchData();
   }, [messId]);
+
+  const handleRating = async (rating) => {
+    if (hasRated) {
+      alert("You have already rated this mess!");
+      return;
+    }
+
+    setRatingLoading(true);
+    const result = await saveRating(messId, rating);
+
+    if (result.success) {
+      setUserRating(rating);
+      setHasRated(true);
+
+      // Update local mess data
+      const updatedMess = await getMessById(messId);
+      setMess(updatedMess);
+
+      alert("Thanks for rating! ⭐");
+    } else {
+      alert("Failed to save rating. Please try again.");
+    }
+
+    setRatingLoading(false);
+  };
 
   if (loading) {
     return (
@@ -407,18 +446,48 @@ const MessDetailPage = () => {
             ({mess.totalRatings} ratings)
           </span>
         </div>
-        <div style={{ display: "flex", gap: "4px" }}>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star
-              key={star}
-              size={32}
-              style={{ color: "#ddd", cursor: "pointer" }}
-            />
-          ))}
-        </div>
-        <p style={{ fontSize: "12px", color: "#999", marginTop: "8px" }}>
-          Login required to rate
-        </p>
+
+        {hasRated ? (
+          <>
+            <div style={{ display: "flex", gap: "4px", marginBottom: "8px" }}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  size={32}
+                  style={{
+                    fill: star <= userRating ? "#f4c430" : "none",
+                    color: star <= userRating ? "#f4c430" : "#ddd",
+                  }}
+                />
+              ))}
+            </div>
+            <p
+              style={{ fontSize: "13px", color: "#059669", fontWeight: "600" }}
+            >
+              You rated this mess {userRating} star{userRating !== 1 ? "s" : ""}
+            </p>
+          </>
+        ) : (
+          <>
+            <div style={{ display: "flex", gap: "4px", marginBottom: "8px" }}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  size={32}
+                  style={{
+                    color: "#f4c430",
+                    cursor: ratingLoading ? "not-allowed" : "pointer",
+                    opacity: ratingLoading ? 0.5 : 1,
+                  }}
+                  onClick={() => !ratingLoading && handleRating(star)}
+                />
+              ))}
+            </div>
+            <p style={{ fontSize: "12px", color: "#999" }}>
+              Tap a star to rate
+            </p>
+          </>
+        )}
       </div>
 
       {/* Contact & Location */}
