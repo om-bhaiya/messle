@@ -6,6 +6,7 @@ import {
   query,
   where,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 
 import { db } from "./firebase";
@@ -84,20 +85,28 @@ export const getTodayMenu = async (messId) => {
   }
 };
 
-// Update today's menu
-export const updateTodayMenu = async (messId, menuData) => {
+// Update today's menu and services
+export const updateTodayMenu = async (messId, menuData, services) => {
   try {
     const today = new Date().toISOString().split("T")[0];
     const menuId = `menu_${messId}_${today}`;
 
+    // Update menu
     const menuRef = doc(db, "menus", menuId);
-
     await setDoc(menuRef, {
       messId,
       date: today,
       ...menuData,
       updatedAt: new Date(),
     });
+
+    // Update mess services if changed
+    if (services) {
+      const messRef = doc(db, "messes", messId);
+      await updateDoc(messRef, {
+        services: services,
+      });
+    }
 
     return { success: true };
   } catch (error) {

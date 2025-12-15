@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Plus } from "lucide-react";
 
 const MenuUpdateModal = ({
   isOpen,
@@ -12,11 +12,29 @@ const MenuUpdateModal = ({
     breakfast: currentMenu?.breakfast || "",
     lunch: currentMenu?.lunch || "",
     dinner: currentMenu?.dinner || "",
+    "pre-lunch": currentMenu?.["pre-lunch"] || "",
+    "evening-snacks": currentMenu?.["evening-snacks"] || "",
+    supper: currentMenu?.supper || "",
   });
+  const [activeServices, setActiveServices] = useState([...mess.services]);
+  const [showAddService, setShowAddService] = useState(false);
   const [privateKey, setPrivateKey] = useState("");
   const [step, setStep] = useState("menu"); // 'menu' or 'verify'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const availableServices = [
+    { id: "breakfast", label: "Breakfast" },
+    { id: "pre-lunch", label: "Pre-Lunch" },
+    { id: "lunch", label: "Lunch" },
+    { id: "evening-snacks", label: "Evening Snacks" },
+    { id: "dinner", label: "Dinner" },
+    { id: "supper", label: "Supper" },
+  ];
+
+  const remainingServices = availableServices.filter(
+    (service) => !activeServices.includes(service.id)
+  );
 
   if (!isOpen) return null;
 
@@ -27,9 +45,15 @@ const MenuUpdateModal = ({
     }));
   };
 
+  const handleAddService = (serviceId) => {
+    setActiveServices((prev) => [...prev, serviceId]);
+    setShowAddService(false);
+    setError("");
+  };
+
   const handleContinue = () => {
-    // Validate at least one service has menu
-    const hasMenu = mess.services.some((service) => menuData[service]?.trim());
+    // Validate at least one active service has menu
+    const hasMenu = activeServices.some((service) => menuData[service]?.trim());
 
     if (!hasMenu) {
       setError("Please add menu for at least one service");
@@ -55,8 +79,16 @@ const MenuUpdateModal = ({
     setLoading(true);
     setError("");
 
-    // Call parent function to save menu
-    const success = await onUpdateSuccess(menuData);
+    // Filter only active services menu data
+    const filteredMenuData = {};
+    activeServices.forEach((service) => {
+      if (menuData[service]?.trim()) {
+        filteredMenuData[service] = menuData[service];
+      }
+    });
+
+    // Call parent function to save menu and services
+    const success = await onUpdateSuccess(filteredMenuData, activeServices);
 
     setLoading(false);
 
@@ -73,9 +105,14 @@ const MenuUpdateModal = ({
       breakfast: currentMenu?.breakfast || "",
       lunch: currentMenu?.lunch || "",
       dinner: currentMenu?.dinner || "",
+      "pre-lunch": currentMenu?.["pre-lunch"] || "",
+      "evening-snacks": currentMenu?.["evening-snacks"] || "",
+      supper: currentMenu?.supper || "",
     });
+    setActiveServices([...mess.services]);
     setPrivateKey("");
     setError("");
+    setShowAddService(false);
     onClose();
   };
 
@@ -140,7 +177,7 @@ const MenuUpdateModal = ({
               {mess.name}
             </p>
 
-            {mess.services.map((service) => (
+            {activeServices.map((service) => (
               <div key={service} style={{ marginBottom: "16px" }}>
                 <label
                   style={{
@@ -152,7 +189,7 @@ const MenuUpdateModal = ({
                     textTransform: "capitalize",
                   }}
                 >
-                  {service}
+                  {service.replace("-", " ")}
                 </label>
                 <input
                   type="text"
@@ -169,6 +206,87 @@ const MenuUpdateModal = ({
                 />
               </div>
             ))}
+
+            {/* Add Service Button */}
+            {remainingServices.length > 0 && !showAddService && (
+              <button
+                onClick={() => setShowAddService(true)}
+                style={{
+                  width: "100%",
+                  background: "#f0f0f0",
+                  border: "1px dashed #ccc",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  color: "#555",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                  marginBottom: "16px",
+                }}
+              >
+                <Plus size={18} />
+                Add Service
+              </button>
+            )}
+
+            {/* Service Selection */}
+            {showAddService && (
+              <div
+                style={{
+                  background: "#f9f9f9",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  marginBottom: "16px",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "#555",
+                    marginBottom: "10px",
+                    fontWeight: "600",
+                  }}
+                >
+                  Select a service to add:
+                </p>
+                {remainingServices.map((service) => (
+                  <button
+                    key={service.id}
+                    onClick={() => handleAddService(service.id)}
+                    style={{
+                      width: "100%",
+                      background: "white",
+                      border: "1px solid #ddd",
+                      padding: "10px",
+                      borderRadius: "6px",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      marginBottom: "6px",
+                      textAlign: "left",
+                    }}
+                  >
+                    {service.label}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setShowAddService(false)}
+                  style={{
+                    width: "100%",
+                    background: "none",
+                    border: "none",
+                    color: "#777",
+                    fontSize: "13px",
+                    cursor: "pointer",
+                    marginTop: "6px",
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
 
             {error && (
               <p

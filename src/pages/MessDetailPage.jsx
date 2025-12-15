@@ -71,13 +71,15 @@ const MessDetailPage = () => {
     setRatingLoading(false);
   };
 
-  const handleMenuUpdate = async (menuData) => {
-    const result = await updateTodayMenu(messId, menuData);
+  const handleMenuUpdate = async (menuData, services) => {
+    const result = await updateTodayMenu(messId, menuData, services);
 
     if (result.success) {
-      // Refresh menu data
+      // Refresh both menu and mess data
       const updatedMenu = await getTodayMenu(messId);
+      const updatedMess = await getMessById(messId);
       setTodayMenu(updatedMenu);
+      setMess(updatedMess);
       return true;
     }
 
