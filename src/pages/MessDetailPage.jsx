@@ -1,12 +1,19 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, Phone, MapPin, Edit } from "lucide-react";
-import { getMessById, getTodayMenu } from "../services/database";
+import {
+  getMessById,
+  getTodayMenu,
+  updateTodayMenu,
+} from "../services/database";
 import { saveRating, hasUserRated, getUserRating } from "../services/ratings";
+import MenuUpdateModal from "../components/MenuUpdateModal";
 
 const MessDetailPage = () => {
   const { messId } = useParams();
   const navigate = useNavigate();
+
+  const [showMenuModal, setShowMenuModal] = useState(false);
 
   const [mess, setMess] = useState(null);
   const [todayMenu, setTodayMenu] = useState(null);
@@ -62,6 +69,19 @@ const MessDetailPage = () => {
     }
 
     setRatingLoading(false);
+  };
+
+  const handleMenuUpdate = async (menuData) => {
+    const result = await updateTodayMenu(messId, menuData);
+
+    if (result.success) {
+      // Refresh menu data
+      const updatedMenu = await getTodayMenu(messId);
+      setTodayMenu(updatedMenu);
+      return true;
+    }
+
+    return false;
   };
 
   if (loading) {
@@ -285,7 +305,11 @@ const MessDetailPage = () => {
           }}
         >
           <h3 style={{ fontSize: "16px", fontWeight: "600" }}>Today's Menu</h3>
-          <Edit size={18} style={{ color: "#f4c430", cursor: "pointer" }} />
+          <Edit
+            size={18}
+            style={{ color: "#f4c430", cursor: "pointer" }}
+            onClick={() => setShowMenuModal(true)}
+          />
         </div>
 
         {isMenuUpdated ? (
@@ -558,6 +582,14 @@ const MessDetailPage = () => {
       >
         Direct info. No middlemen. No nonsense.
       </div>
+      {/* Menu Update Modal */}
+      <MenuUpdateModal
+        isOpen={showMenuModal}
+        onClose={() => setShowMenuModal(false)}
+        mess={mess}
+        currentMenu={todayMenu}
+        onUpdateSuccess={handleMenuUpdate}
+      />
     </div>
   );
 };

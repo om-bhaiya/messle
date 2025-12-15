@@ -5,7 +5,9 @@ import {
   getDoc,
   query,
   where,
+  setDoc,
 } from "firebase/firestore";
+
 import { db } from "./firebase";
 
 // Fetch all messes
@@ -79,5 +81,27 @@ export const getTodayMenu = async (messId) => {
   } catch (error) {
     console.error("Error fetching menu:", error);
     return null;
+  }
+};
+
+// Update today's menu
+export const updateTodayMenu = async (messId, menuData) => {
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    const menuId = `menu_${messId}_${today}`;
+
+    const menuRef = doc(db, "menus", menuId);
+
+    await setDoc(menuRef, {
+      messId,
+      date: today,
+      ...menuData,
+      updatedAt: new Date(),
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating menu:", error);
+    return { success: false, message: error.message };
   }
 };
