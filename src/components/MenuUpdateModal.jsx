@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Trash2 } from "lucide-react";
 
 const MenuUpdateModal = ({
   isOpen,
@@ -51,6 +51,22 @@ const MenuUpdateModal = ({
     setError("");
   };
 
+  const handleRemoveService = (serviceId) => {
+    // Prevent removing if it's the last service
+    if (activeServices.length === 1) {
+      setError("Cannot remove the last service");
+      return;
+    }
+
+    setActiveServices((prev) => prev.filter((s) => s !== serviceId));
+    // Clear menu data for removed service
+    setMenuData((prev) => ({
+      ...prev,
+      [serviceId]: "",
+    }));
+    setError("");
+  };
+
   const handleContinue = () => {
     // Validate at least one active service has menu
     const hasMenu = activeServices.some((service) => menuData[service]?.trim());
@@ -79,11 +95,11 @@ const MenuUpdateModal = ({
     setLoading(true);
     setError("");
 
-    // Filter only active services menu data
+    // Filter only active services menu data (only services with content)
     const filteredMenuData = {};
     activeServices.forEach((service) => {
       if (menuData[service]?.trim()) {
-        filteredMenuData[service] = menuData[service];
+        filteredMenuData[service] = menuData[service].trim();
       }
     });
 
@@ -93,6 +109,7 @@ const MenuUpdateModal = ({
     setLoading(false);
 
     if (success) {
+      alert("Menu and services updated successfully! ✅");
       resetAndClose();
     } else {
       setError("Failed to update menu. Please try again.");
@@ -101,14 +118,6 @@ const MenuUpdateModal = ({
 
   const resetAndClose = () => {
     setStep("menu");
-    setMenuData({
-      breakfast: currentMenu?.breakfast || "",
-      lunch: currentMenu?.lunch || "",
-      dinner: currentMenu?.dinner || "",
-      "pre-lunch": currentMenu?.["pre-lunch"] || "",
-      "evening-snacks": currentMenu?.["evening-snacks"] || "",
-      supper: currentMenu?.supper || "",
-    });
     setActiveServices([...mess.services]);
     setPrivateKey("");
     setError("");
@@ -154,6 +163,7 @@ const MenuUpdateModal = ({
             background: "none",
             border: "none",
             cursor: "pointer",
+            zIndex: 10,
           }}
         >
           <X size={24} color="#777" />
@@ -179,18 +189,40 @@ const MenuUpdateModal = ({
 
             {activeServices.map((service) => (
               <div key={service} style={{ marginBottom: "16px" }}>
-                <label
+                <div
                   style={{
-                    display: "block",
-                    fontSize: "14px",
-                    fontWeight: "600",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                     marginBottom: "6px",
-                    color: "#555",
-                    textTransform: "capitalize",
                   }}
                 >
-                  {service.replace("-", " ")}
-                </label>
+                  <label
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#555",
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {service.replace("-", " ")}
+                  </label>
+                  {activeServices.length > 1 && (
+                    <button
+                      onClick={() => handleRemoveService(service)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "#8b1e1e",
+                        padding: "4px",
+                      }}
+                      title="Remove service"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
                 <input
                   type="text"
                   value={menuData[service]}
@@ -240,6 +272,7 @@ const MenuUpdateModal = ({
                   padding: "12px",
                   borderRadius: "8px",
                   marginBottom: "16px",
+                  border: "1px solid #e0e0e0",
                 }}
               >
                 <p
@@ -360,6 +393,11 @@ const MenuUpdateModal = ({
                   borderRadius: "8px",
                   fontSize: "14px",
                 }}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    handleUpdate();
+                  }
+                }}
               />
             </div>
 
@@ -377,7 +415,11 @@ const MenuUpdateModal = ({
 
             <div style={{ display: "flex", gap: "8px" }}>
               <button
-                onClick={() => setStep("menu")}
+                onClick={() => {
+                  setStep("menu");
+                  setPrivateKey("");
+                  setError("");
+                }}
                 style={{
                   flex: 1,
                   background: "#eee",

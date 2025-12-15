@@ -100,13 +100,11 @@ export const updateTodayMenu = async (messId, menuData, services) => {
       updatedAt: new Date(),
     });
 
-    // Update mess services if changed
-    if (services) {
-      const messRef = doc(db, "messes", messId);
-      await updateDoc(messRef, {
-        services: services,
-      });
-    }
+    // Update mess services
+    const messRef = doc(db, "messes", messId);
+    await updateDoc(messRef, {
+      services: services,
+    });
 
     return { success: true };
   } catch (error) {

@@ -75,11 +75,15 @@ const MessDetailPage = () => {
     const result = await updateTodayMenu(messId, menuData, services);
 
     if (result.success) {
-      // Refresh both menu and mess data
-      const updatedMenu = await getTodayMenu(messId);
-      const updatedMess = await getMessById(messId);
+      // Immediately refresh both menu and mess data
+      const [updatedMenu, updatedMess] = await Promise.all([
+        getTodayMenu(messId),
+        getMessById(messId),
+      ]);
+
       setTodayMenu(updatedMenu);
       setMess(updatedMess);
+
       return true;
     }
 
