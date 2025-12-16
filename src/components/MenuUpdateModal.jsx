@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 
 const MenuUpdateModal = ({
@@ -16,6 +16,7 @@ const MenuUpdateModal = ({
     "evening-snacks": currentMenu?.["evening-snacks"] || "",
     supper: currentMenu?.supper || "",
   });
+
   const [activeServices, setActiveServices] = useState([...mess.services]);
   const [showAddService, setShowAddService] = useState(false);
   const [privateKey, setPrivateKey] = useState("");
@@ -31,6 +32,26 @@ const MenuUpdateModal = ({
     { id: "dinner", label: "Dinner" },
     { id: "supper", label: "Supper" },
   ];
+
+  // Reset modal state when it opens
+  useEffect(() => {
+    if (isOpen) {
+      // Reset to current mess services and menu
+      setActiveServices([...mess.services]);
+      setMenuData({
+        breakfast: currentMenu?.breakfast || "",
+        lunch: currentMenu?.lunch || "",
+        dinner: currentMenu?.dinner || "",
+        "pre-lunch": currentMenu?.["pre-lunch"] || "",
+        "evening-snacks": currentMenu?.["evening-snacks"] || "",
+        supper: currentMenu?.supper || "",
+      });
+      setStep("menu");
+      setPrivateKey("");
+      setError("");
+      setShowAddService(false);
+    }
+  }, [isOpen, mess.services, currentMenu]);
 
   const remainingServices = availableServices.filter(
     (service) => !activeServices.includes(service.id)
@@ -54,7 +75,9 @@ const MenuUpdateModal = ({
   const handleRemoveService = (serviceId) => {
     // Prevent removing if it's the last service
     if (activeServices.length === 1) {
-      setError("Cannot remove the last service");
+      alert(
+        "Cannot remove the last service. At least one service is required."
+      );
       return;
     }
 
@@ -207,21 +230,26 @@ const MenuUpdateModal = ({
                   >
                     {service.replace("-", " ")}
                   </label>
-                  {activeServices.length > 1 && (
-                    <button
-                      onClick={() => handleRemoveService(service)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        color: "#8b1e1e",
-                        padding: "4px",
-                      }}
-                      title="Remove service"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
+                  <button
+                    onClick={() => handleRemoveService(service)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor:
+                        activeServices.length > 1 ? "pointer" : "not-allowed",
+                      color: activeServices.length > 1 ? "#8b1e1e" : "#ccc",
+                      padding: "4px",
+                      opacity: activeServices.length > 1 ? 1 : 0.5,
+                    }}
+                    title={
+                      activeServices.length > 1
+                        ? "Remove service"
+                        : "Cannot remove last service"
+                    }
+                    disabled={activeServices.length === 1}
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
                 <input
                   type="text"

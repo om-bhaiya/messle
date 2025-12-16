@@ -13,14 +13,15 @@ const MessDetailPage = () => {
   const { messId } = useParams();
   const navigate = useNavigate();
 
-  const [showMenuModal, setShowMenuModal] = useState(false);
-
   const [mess, setMess] = useState(null);
   const [todayMenu, setTodayMenu] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userRating, setUserRating] = useState(0);
   const [hasRated, setHasRated] = useState(false);
   const [ratingLoading, setRatingLoading] = useState(false);
+
+  const [showMenuModal, setShowMenuModal] = useState(false);
+  const [menuModalKey, setMenuModalKey] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -83,6 +84,9 @@ const MessDetailPage = () => {
 
       setTodayMenu(updatedMenu);
       setMess(updatedMess);
+
+      // Force modal to remount with fresh data
+      setMenuModalKey((prev) => prev + 1);
 
       return true;
     }
@@ -320,54 +324,29 @@ const MessDetailPage = () => {
 
         {isMenuUpdated ? (
           <div>
-            {mess.services.includes("breakfast") && todayMenu.breakfast && (
-              <div style={{ marginBottom: "10px" }}>
-                <p
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    color: "#8b1e1e",
-                  }}
-                >
-                  Breakfast:
-                </p>
-                <p style={{ fontSize: "14px", color: "#555" }}>
-                  {todayMenu.breakfast}
-                </p>
-              </div>
-            )}
-            {mess.services.includes("lunch") && todayMenu.lunch && (
-              <div style={{ marginBottom: "10px" }}>
-                <p
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    color: "#8b1e1e",
-                  }}
-                >
-                  Lunch:
-                </p>
-                <p style={{ fontSize: "14px", color: "#555" }}>
-                  {todayMenu.lunch}
-                </p>
-              </div>
-            )}
-            {mess.services.includes("dinner") && todayMenu.dinner && (
-              <div style={{ marginBottom: "10px" }}>
-                <p
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    color: "#8b1e1e",
-                  }}
-                >
-                  Dinner:
-                </p>
-                <p style={{ fontSize: "14px", color: "#555" }}>
-                  {todayMenu.dinner}
-                </p>
-              </div>
-            )}
+            {mess.services.map((service) => {
+              const menuItem = todayMenu[service];
+              if (menuItem) {
+                return (
+                  <div key={service} style={{ marginBottom: "10px" }}>
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: "600",
+                        color: "#8b1e1e",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {service.replace("-", " ")}:
+                    </p>
+                    <p style={{ fontSize: "14px", color: "#555" }}>
+                      {menuItem}
+                    </p>
+                  </div>
+                );
+              }
+              return null;
+            })}
           </div>
         ) : (
           <p style={{ fontSize: "14px", color: "#999", fontStyle: "italic" }}>
@@ -590,8 +569,12 @@ const MessDetailPage = () => {
       </div>
       {/* Menu Update Modal */}
       <MenuUpdateModal
+        key={menuModalKey}
         isOpen={showMenuModal}
-        onClose={() => setShowMenuModal(false)}
+        onClose={() => {
+          setShowMenuModal(false);
+          setMenuModalKey((prev) => prev + 1);
+        }}
         mess={mess}
         currentMenu={todayMenu}
         onUpdateSuccess={handleMenuUpdate}
