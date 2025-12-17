@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { importMesses, importMenus } from "../utils/importData";
+import { importMessesFromJSON } from "../utils/importMessesFromJSON";
 
 const ImportPage = () => {
   const [status, setStatus] = useState("");
@@ -7,25 +7,17 @@ const ImportPage = () => {
 
   const handleImport = async () => {
     setLoading(true);
-    setStatus("Importing messes...");
+    setStatus("Importing messes from JSON...");
 
-    const messResult = await importMesses();
-    if (messResult.success) {
-      setStatus("Messes imported! Now importing menus...");
-      const menuResult = await importMenus();
-
-      if (menuResult.success) {
-        setStatus(
-          "✅ All data imported successfully! You can close this page."
-        );
-      } else {
-        setStatus(`❌ Menu import failed: ${menuResult.message}`);
-      }
-    } else {
-      setStatus(`❌ Mess import failed: ${messResult.message}`);
-    }
+    const result = await importMessesFromJSON();
 
     setLoading(false);
+
+    if (result.success) {
+      setStatus(`✅ Successfully imported ${result.count} messes!`);
+    } else {
+      setStatus(`❌ Import failed: ${result.message}`);
+    }
   };
 
   return (
@@ -39,9 +31,9 @@ const ImportPage = () => {
         textAlign: "center",
       }}
     >
-      <h2 style={{ marginBottom: "20px" }}>Firebase Data Import</h2>
+      <h2 style={{ marginBottom: "20px" }}>Import Messes from JSON</h2>
       <p style={{ marginBottom: "20px", color: "#666" }}>
-        Click the button below to import test data into Firestore
+        Click to import 9 messes from JSON file
       </p>
 
       <button
@@ -58,7 +50,7 @@ const ImportPage = () => {
           opacity: loading ? 0.6 : 1,
         }}
       >
-        {loading ? "Importing..." : "Import Data"}
+        {loading ? "Importing..." : "Import Messes"}
       </button>
 
       {status && (
@@ -69,6 +61,7 @@ const ImportPage = () => {
             background: "#f0f0f0",
             borderRadius: "8px",
             fontSize: "14px",
+            whiteSpace: "pre-wrap",
           }}
         >
           {status}

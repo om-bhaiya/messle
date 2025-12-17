@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
+import { Filter } from "lucide-react";
 import MessCard from "../components/MessCard";
 import { getMessesByCity } from "../services/database";
+import { getUserLocation, calculateDistance } from "../utils/distance";
 
 const HomePage = () => {
   const [messes, setMesses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedArea, setSelectedArea] = useState("all");
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationError, setLocationError] = useState(false);
+  const [selectedDistance, setSelectedDistance] = useState("all");
   const [selectedPrice, setSelectedPrice] = useState("all");
   const [selectedRating, setSelectedRating] = useState("all");
 
-  // Fetch messes from Firebase
+  // Fetch messes
   useEffect(() => {
     const fetchMesses = async () => {
       setLoading(true);
@@ -21,30 +25,80 @@ const HomePage = () => {
     fetchMesses();
   }, []);
 
-  const areas = ["all", ...new Set(messes.map((m) => m.area))];
+  // Request location when distance filter is used
+  const handleDistanceFilterChange = async (value) => {
+    setSelectedDistance(value);
 
-  const filteredMesses = messes.filter((mess) => {
-    const areaMatch = selectedArea === "all" || mess.area === selectedArea;
+    if (value !== "all" && !userLocation && !locationError) {
+      try {
+        const location = await getUserLocation();
+        setUserLocation(location);
+      } catch (error) {
+        console.error("Location error:", error);
+        setLocationError(true);
+        alert("Could not get your location. Showing all messes.");
+        setSelectedDistance("all");
+      }
+    }
+  };
 
-    const priceMatch =
-      selectedPrice === "all" ||
-      (selectedPrice === "0-2000" && mess.monthlyPrice <= 2000) ||
-      (selectedPrice === "2000-2500" &&
-        mess.monthlyPrice > 2000 &&
-        mess.monthlyPrice <= 2500) ||
-      (selectedPrice === "2500-3000" &&
-        mess.monthlyPrice > 2500 &&
-        mess.monthlyPrice <= 3000) ||
-      (selectedPrice === "3000+" && mess.monthlyPrice > 3000);
+  // Calculate distances and filter
+  const filteredMesses = messes
+    .map((mess) => {
+      if (userLocation) {
+        const distance = calculateDistance(
+          userLocation.lat,
+          userLocation.lng,
+          mess.location.lat,
+          mess.location.lng
+        );
+        return { ...mess, distance };
+      }
+      return mess;
+    })
+    .filter((mess) => {
+      // Distance filter
+      const distanceMatch =
+        selectedDistance === "all" ||
+        !userLocation ||
+        (selectedDistance === "1" && mess.distance <= 1) ||
+        (selectedDistance === "2" && mess.distance <= 2) ||
+        (selectedDistance === "5" && mess.distance <= 5) ||
+        (selectedDistance === "10" && mess.distance <= 10);
 
-    const ratingMatch =
-      selectedRating === "all" ||
-      (selectedRating === "4+" && mess.rating >= 4) ||
-      (selectedRating === "3-4" && mess.rating >= 3 && mess.rating < 4) ||
-      (selectedRating === "3-" && mess.rating < 3);
+      // Price filter
+      const priceMatch =
+        selectedPrice === "all" ||
+        (selectedPrice === "0-3000" && mess.monthlyPrice <= 3000) ||
+        (selectedPrice === "3000-4000" &&
+          mess.monthlyPrice > 3000 &&
+          mess.monthlyPrice <= 4000) ||
+        (selectedPrice === "4000-5000" &&
+          mess.monthlyPrice > 4000 &&
+          mess.monthlyPrice <= 5000) ||
+        (selectedPrice === "5000+" && mess.monthlyPrice > 5000);
 
-    return areaMatch && priceMatch && ratingMatch;
-  });
+      // Rating filter
+      const ratingMatch =
+        selectedRating === "all" ||
+        (selectedRating === "4+" && mess.rating >= 4) ||
+        (selectedRating === "3-4" && mess.rating >= 3 && mess.rating < 4) ||
+        (selectedRating === "3-" && mess.rating < 3 && mess.rating > 0) ||
+        (selectedRating === "new" && mess.rating === 0);
+
+      return distanceMatch && priceMatch && ratingMatch;
+    })
+    .sort((a, b) => {
+      // Sort by distance if available
+      if (
+        userLocation &&
+        a.distance !== undefined &&
+        b.distance !== undefined
+      ) {
+        return a.distance - b.distance;
+      }
+      return 0;
+    });
 
   if (loading) {
     return (
@@ -86,13 +140,9 @@ const HomePage = () => {
     <div
       style={{ background: "#f7f5f2", minHeight: "100vh", color: "#3b2f2f" }}
     >
-      {/* Top Bar */}
+      {/* Header */}
       <div
-        style={{
-          background: "#3b2f2f",
-          color: "white",
-          padding: "14px 16px",
-        }}
+        style={{ background: "#3b2f2f", color: "white", padding: "14px 16px" }}
       >
         <h1
           style={{ fontSize: "18px", fontWeight: "600", marginBottom: "2px" }}
@@ -115,9 +165,10 @@ const HomePage = () => {
           borderBottom: "1px solid #e0e0e0",
         }}
       >
+        {/* Distance Filter */}
         <select
-          value={selectedArea}
-          onChange={(e) => setSelectedArea(e.target.value)}
+          value={selectedDistance}
+          onChange={(e) => handleDistanceFilterChange(e.target.value)}
           style={{
             padding: "8px",
             fontSize: "13px",
@@ -126,16 +177,14 @@ const HomePage = () => {
             background: "#fff",
           }}
         >
-          <option value="all">All Areas</option>
-          {areas
-            .filter((a) => a !== "all")
-            .map((area) => (
-              <option key={area} value={area}>
-                {area}
-              </option>
-            ))}
+          <option value="all">Distance</option>
+          <option value="1">Within 1 km</option>
+          <option value="2">Within 2 km</option>
+          <option value="5">Within 5 km</option>
+          <option value="10">Within 10 km</option>
         </select>
 
+        {/* Price Filter */}
         <select
           value={selectedPrice}
           onChange={(e) => setSelectedPrice(e.target.value)}
@@ -148,12 +197,13 @@ const HomePage = () => {
           }}
         >
           <option value="all">Any Price</option>
-          <option value="0-2000">Under ₹2000</option>
-          <option value="2000-2500">₹2000 - ₹2500</option>
-          <option value="2500-3000">₹2500 - ₹3000</option>
-          <option value="3000+">Above ₹3000</option>
+          <option value="0-3000">Under ₹3000</option>
+          <option value="3000-4000">₹3000 - ₹4000</option>
+          <option value="4000-5000">₹4000 - ₹5000</option>
+          <option value="5000+">Above ₹5000</option>
         </select>
 
+        {/* Rating Filter */}
         <select
           value={selectedRating}
           onChange={(e) => setSelectedRating(e.target.value)}
@@ -169,13 +219,27 @@ const HomePage = () => {
           <option value="4+">4★ & above</option>
           <option value="3-4">3★ & above</option>
           <option value="3-">Below 3★</option>
+          <option value="new">New (No ratings)</option>
         </select>
       </div>
 
       {/* Mess List */}
       <div style={{ padding: "14px" }}>
         {filteredMesses.length > 0 ? (
-          filteredMesses.map((mess) => <MessCard key={mess.id} mess={mess} />)
+          <>
+            <p
+              style={{ fontSize: "12px", color: "#777", marginBottom: "12px" }}
+            >
+              {filteredMesses.length} mess
+              {filteredMesses.length !== 1 ? "es" : ""} found
+              {userLocation &&
+                selectedDistance !== "all" &&
+                ` within ${selectedDistance} km`}
+            </p>
+            {filteredMesses.map((mess) => (
+              <MessCard key={mess.id} mess={mess} userLocation={userLocation} />
+            ))}
+          </>
         ) : (
           <div
             style={{
@@ -193,7 +257,7 @@ const HomePage = () => {
             {messes.length > 0 && (
               <button
                 onClick={() => {
-                  setSelectedArea("all");
+                  setSelectedDistance("all");
                   setSelectedPrice("all");
                   setSelectedRating("all");
                 }}
