@@ -17,11 +17,11 @@ This project follows semantic versioning where applicable.
 
 ---
 
-## [0.2.0] - 2025-12-19
+## [0.3.0] - 2025-12-19
 
 ### Added
 
-- Photo upload support for mess listings using Cloudinary
+- Swipeable photo gallery for mess images.
 
 ### Changed
 

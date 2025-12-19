@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, Phone, MapPin, Edit } from "lucide-react";
+import ImageLightbox from "../components/ImageLightbox";
 
 import {
   getMessById,
@@ -30,6 +31,9 @@ const MessDetailPage = () => {
 
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [photoModalKey, setPhotoModalKey] = useState(0);
+
+  const [showLightbox, setShowLightbox] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -314,12 +318,17 @@ const MessDetailPage = () => {
             {mess.photos.slice(0, 6).map((photo, idx) => (
               <div
                 key={idx}
+                onClick={() => {
+                  setLightboxIndex(idx);
+                  setShowLightbox(true);
+                }}
                 style={{
                   paddingBottom: "100%",
                   position: "relative",
                   background: "#f0f0f0",
                   borderRadius: "8px",
                   overflow: "hidden",
+                  cursor: "pointer",
                 }}
               >
                 <img
@@ -332,7 +341,12 @@ const MessDetailPage = () => {
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
+                    transition: "transform 0.2s",
                   }}
+                  onMouseEnter={(e) =>
+                    (e.target.style.transform = "scale(1.05)")
+                  }
+                  onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
                 />
               </div>
             ))}
@@ -366,7 +380,6 @@ const MessDetailPage = () => {
           </p>
         </div>
       )}
-
       {/* Today's Menu */}
       <div
         style={{
@@ -655,6 +668,13 @@ const MessDetailPage = () => {
         onClose={() => setShowPhotoModal(false)}
         mess={mess}
         onUpdateSuccess={handlePhotosUpdate}
+      />
+      {/* Image Lightbox */}
+      <ImageLightbox
+        images={mess.photos || []}
+        initialIndex={lightboxIndex}
+        isOpen={showLightbox}
+        onClose={() => setShowLightbox(false)}
       />
     </div>
   );
