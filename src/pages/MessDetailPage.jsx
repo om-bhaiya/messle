@@ -1,13 +1,18 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, Phone, MapPin, Edit } from "lucide-react";
+
 import {
   getMessById,
   getTodayMenu,
   updateTodayMenu,
 } from "../services/database";
+
 import { saveRating, hasUserRated, getUserRating } from "../services/ratings";
 import MenuUpdateModal from "../components/MenuUpdateModal";
+
+import PhotoManagementModal from "../components/PhotoManagementModal";
+import { updateMessPhotos } from "../services/photos";
 
 const MessDetailPage = () => {
   const { messId } = useParams();
@@ -22,6 +27,9 @@ const MessDetailPage = () => {
 
   const [showMenuModal, setShowMenuModal] = useState(false);
   const [menuModalKey, setMenuModalKey] = useState(0);
+
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [photoModalKey, setPhotoModalKey] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -88,6 +96,19 @@ const MessDetailPage = () => {
       // Force modal to remount with fresh data
       setMenuModalKey((prev) => prev + 1);
 
+      return true;
+    }
+
+    return false;
+  };
+
+  const handlePhotosUpdate = async (photoUrls) => {
+    const result = await updateMessPhotos(messId, photoUrls);
+
+    if (result.success) {
+      const updatedMess = await getMessById(messId);
+      setMess(updatedMess);
+      setPhotoModalKey((prev) => prev + 1);
       return true;
     }
 
@@ -221,45 +242,6 @@ const MessDetailPage = () => {
         {getTypeBadge()}
       </div>
 
-      {/* Photos Section */}
-      {mess.photos && mess.photos.length > 0 && (
-        <div
-          style={{
-            background: "white",
-            padding: "14px",
-            marginBottom: "8px",
-          }}
-        >
-          <h3
-            style={{
-              fontSize: "16px",
-              fontWeight: "600",
-              marginBottom: "10px",
-            }}
-          >
-            Photos
-          </h3>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "8px",
-            }}
-          >
-            {mess.photos.slice(0, 3).map((photo, idx) => (
-              <div
-                key={idx}
-                style={{
-                  background: "#e0e0e0",
-                  borderRadius: "8px",
-                  height: "100px",
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Pricing */}
       <div
         style={{
@@ -297,6 +279,93 @@ const MessDetailPage = () => {
           </span>
         </div>
       </div>
+
+      {/* Photos Section */}
+      {mess.photos && mess.photos.length > 0 ? (
+        <div
+          style={{
+            background: "white",
+            padding: "14px",
+            marginBottom: "8px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "10px",
+            }}
+          >
+            <h3 style={{ fontSize: "16px", fontWeight: "600" }}>Photos</h3>
+            <Edit
+              size={18}
+              style={{ color: "#f4c430", cursor: "pointer" }}
+              onClick={() => setShowPhotoModal(true)}
+            />
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "8px",
+            }}
+          >
+            {mess.photos.slice(0, 6).map((photo, idx) => (
+              <div
+                key={idx}
+                style={{
+                  paddingBottom: "100%",
+                  position: "relative",
+                  background: "#f0f0f0",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                }}
+              >
+                <img
+                  src={typeof photo === "string" ? photo : photo.url}
+                  alt={`${mess.name} photo ${idx + 1}`}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div
+          style={{
+            background: "white",
+            padding: "14px",
+            marginBottom: "8px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "10px",
+            }}
+          >
+            <h3 style={{ fontSize: "16px", fontWeight: "600" }}>Photos</h3>
+            <Edit
+              size={18}
+              style={{ color: "#f4c430", cursor: "pointer" }}
+              onClick={() => setShowPhotoModal(true)}
+            />
+          </div>
+          <p style={{ fontSize: "14px", color: "#999" }}>
+            No photos yet. Click edit to add photos.
+          </p>
+        </div>
+      )}
 
       {/* Today's Menu */}
       <div
@@ -578,6 +647,14 @@ const MessDetailPage = () => {
         mess={mess}
         currentMenu={todayMenu}
         onUpdateSuccess={handleMenuUpdate}
+      />
+      {/* Photo Management Modal */}
+      <PhotoManagementModal
+        key={photoModalKey}
+        isOpen={showPhotoModal}
+        onClose={() => setShowPhotoModal(false)}
+        mess={mess}
+        onUpdateSuccess={handlePhotosUpdate}
       />
     </div>
   );

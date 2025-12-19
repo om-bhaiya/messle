@@ -11,30 +11,18 @@ This project follows semantic versioning where applicable.
 
 ### Added
 
--
-
 ### Changed
-
--
 
 ### Fixed
 
-- ***
+---
 
-## [0.1.0] - 2025-12-18
+## [0.2.0] - 2025-12-19
 
 ### Added
 
-- Initial routing setup using React Router
-- HomePage, MessDetailPage, and ImportPage
-- Mess card component structure
-- JSON-based mess import utility
+- Photo upload support for mess listings using Cloudinary
 
 ### Changed
 
-- Project structure standardized under src/
-- Routing logic centralized in App.jsx
-
 ### Fixed
-
-- Initial build and dependency issues
