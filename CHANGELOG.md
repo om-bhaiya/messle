@@ -17,6 +17,16 @@ This project follows semantic versioning where applicable.
 
 ---
 
+## [0.5.2] - 2025-12-20
+
+### Added
+
+### Changed
+
+### Fixed
+
+-Installed terser.
+
 ## [0.5.1] - 2025-12-20
 
 ### Added
