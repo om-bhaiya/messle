@@ -1,6 +1,8 @@
 import { Star, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDistance } from "../utils/distance";
+import { calculateMessScore } from "../utils/ranking";
+import { isToday } from "../utils/dateHelpers";
 
 const MessCard = ({ mess, userLocation }) => {
   const navigate = useNavigate();
@@ -102,6 +104,29 @@ const MessCard = ({ mess, userLocation }) => {
           )}
         </div>
         {getTypeBadge()}
+      </div>
+
+      {/* Menu Updated Badge */}
+      {mess.menuUpdatedToday && (
+        <div
+          style={{
+            display: "inline-block",
+            background: "#d4edda",
+            color: "#155724",
+            padding: "3px 8px",
+            borderRadius: "10px",
+            fontSize: "10px",
+            fontWeight: "600",
+            marginTop: "6px",
+          }}
+        >
+          ✓ Menu Updated
+        </div>
+      )}
+
+      {/* Temporary - Remove in production */}
+      <div style={{ fontSize: "10px", color: "#999", marginTop: "4px" }}>
+        Score: {calculateMessScore(mess).toFixed(1)}
       </div>
 
       {/* Rating */}

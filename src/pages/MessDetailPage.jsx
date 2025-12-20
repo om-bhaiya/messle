@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, Phone, MapPin, Edit } from "lucide-react";
 import ImageLightbox from "../components/ImageLightbox";
+import { getRelativeTime, isToday } from "../utils/dateHelpers";
 
 import {
   getMessById,
@@ -406,6 +407,25 @@ const MessDetailPage = () => {
 
         {isMenuUpdated ? (
           <div>
+            {/* Last Updated Tag */}
+            {todayMenu.updatedAt && isToday(todayMenu.updatedAt) && (
+              <div
+                style={{
+                  display: "inline-block",
+                  background: "#d4edda",
+                  color: "#155724",
+                  padding: "4px 10px",
+                  borderRadius: "12px",
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  marginBottom: "12px",
+                }}
+              >
+                ✓ {getRelativeTime(todayMenu.updatedAt)}
+              </div>
+            )}
+
+            {/* Menu Items */}
             {mess.services.map((service) => {
               const menuItem = todayMenu[service];
               if (menuItem) {

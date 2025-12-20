@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Filter } from "lucide-react";
 import MessCard from "../components/MessCard";
-import { getMessesByCity } from "../services/database";
+import { getMessesByCity, getTodayMenu } from "../services/database";
 import { getUserLocation, calculateDistance } from "../utils/distance";
+import { sortMessesByScore } from "../utils/ranking";
+import { isToday } from "../utils/dateHelpers";
 
 const HomePage = () => {
   const [messes, setMesses] = useState([]);
@@ -18,7 +20,26 @@ const HomePage = () => {
     const fetchMesses = async () => {
       setLoading(true);
       const data = await getMessesByCity("Kota");
-      setMesses(data);
+
+      // Check if each mess has today's menu
+      const today = new Date().toISOString().split("T")[0];
+      const messesWithMenuStatus = await Promise.all(
+        data.map(async (mess) => {
+          const menu = await getTodayMenu(mess.id);
+          // Check both date AND if updatedAt is today
+          const isMenuToday =
+            menu &&
+            menu.date === today &&
+            menu.updatedAt &&
+            isToday(menu.updatedAt);
+          return {
+            ...mess,
+            menuUpdatedToday: isMenuToday,
+          };
+        })
+      );
+
+      setMesses(messesWithMenuStatus);
       setLoading(false);
     };
 
@@ -42,6 +63,7 @@ const HomePage = () => {
     }
   };
 
+  // Calculate distances and filter
   // Calculate distances and filter
   const filteredMesses = messes
     .map((mess) => {
@@ -89,15 +111,19 @@ const HomePage = () => {
       return distanceMatch && priceMatch && ratingMatch;
     })
     .sort((a, b) => {
-      // Sort by distance if available
+      // If distance filter is active, sort by distance
       if (
+        selectedDistance !== "all" &&
         userLocation &&
         a.distance !== undefined &&
         b.distance !== undefined
       ) {
         return a.distance - b.distance;
       }
-      return 0;
+
+      // Otherwise, use ranking algorithm
+      const sortedByScore = sortMessesByScore([a, b]);
+      return sortedByScore[0].id === a.id ? -1 : 1;
     });
 
   if (loading) {

@@ -11,6 +11,9 @@ This project follows semantic versioning where applicable.
 
 ### Added
 
+- Weighted Algorithm to rank mess on the home page.
+- Added Last Updated tags for today's menu on mess detail page and on mess cards on home page.
+
 ### Changed
 
 ### Fixed

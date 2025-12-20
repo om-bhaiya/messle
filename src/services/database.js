@@ -86,10 +86,14 @@ export const getTodayMenu = async (messId) => {
 };
 
 // Update today's menu and services
+// Update today's menu and services
 export const updateTodayMenu = async (messId, menuData, services) => {
   try {
     const today = new Date().toISOString().split("T")[0];
     const menuId = `menu_${messId}_${today}`;
+
+    // Get current time for "last updated"
+    const now = new Date();
 
     // Update menu
     const menuRef = doc(db, "menus", menuId);
@@ -97,7 +101,7 @@ export const updateTodayMenu = async (messId, menuData, services) => {
       messId,
       date: today,
       ...menuData,
-      updatedAt: new Date(),
+      updatedAt: now, // Store as Date object
     });
 
     // Update mess services
