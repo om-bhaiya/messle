@@ -11,6 +11,8 @@ import {
 
 import { db } from "./firebase";
 
+import { updateMessMenuStatus } from "../utils/updateMessMenuStatus";
+
 // Fetch all messes
 export const getAllMesses = async () => {
   try {
@@ -90,8 +92,6 @@ export const updateTodayMenu = async (messId, menuData, services) => {
   try {
     const today = new Date().toISOString().split("T")[0];
     const menuId = `menu_${messId}_${today}`;
-
-    // Get current time for "last updated"
     const now = new Date();
 
     // Update menu
@@ -100,13 +100,15 @@ export const updateTodayMenu = async (messId, menuData, services) => {
       messId,
       date: today,
       ...menuData,
-      updatedAt: now, // Store as Date object
+      updatedAt: now,
     });
 
     // Update mess services
     const messRef = doc(db, "messes", messId);
     await updateDoc(messRef, {
       services: services,
+      menuUpdatedToday: true, // Add this flag
+      lastMenuUpdate: today, // Add this field
     });
 
     return { success: true };

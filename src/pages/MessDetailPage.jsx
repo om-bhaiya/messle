@@ -36,6 +36,15 @@ const MessDetailPage = () => {
   const [showLightbox, setShowLightbox] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
+  // Optimize Cloudinary image URLs
+  const optimizeImageUrl = (url, width = 800) => {
+    if (!url || !url.includes("cloudinary.com")) return url;
+    return url.replace(
+      "/upload/",
+      `/upload/w_${width},h_${width},c_fill,q_auto,f_auto/`
+    );
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -333,8 +342,12 @@ const MessDetailPage = () => {
                 }}
               >
                 <img
-                  src={typeof photo === "string" ? photo : photo.url}
+                  src={optimizeImageUrl(
+                    typeof photo === "string" ? photo : photo.url,
+                    400
+                  )}
                   alt={`${mess.name} photo ${idx + 1}`}
+                  loading="lazy"
                   style={{
                     position: "absolute",
                     top: 0,

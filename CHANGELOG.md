@@ -17,6 +17,16 @@ This project follows semantic versioning where applicable.
 
 ---
 
+## [0.5.1] - 2025-12-20
+
+### Added
+
+- Improved stability and performance of website.
+
+### Changed
+
+### Fixed
+
 ## [0.5.0] - 2025-12-20
 
 ### Added

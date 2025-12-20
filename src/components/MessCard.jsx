@@ -7,6 +7,17 @@ import { isToday } from "../utils/dateHelpers";
 const MessCard = ({ mess, userLocation }) => {
   const navigate = useNavigate();
 
+  // Optimize Cloudinary image URLs
+  const optimizeImageUrl = (url, width = 400) => {
+    if (!url || !url.includes("cloudinary.com")) return url;
+
+    // Insert transformation parameters
+    return url.replace(
+      "/upload/",
+      `/upload/w_${width},h_${width},c_fill,q_auto,f_auto/`
+    );
+  };
+
   const getTypeBadge = () => {
     if (mess.type === "veg") {
       return (

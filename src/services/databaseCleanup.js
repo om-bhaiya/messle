@@ -135,3 +135,32 @@ export const getDatabaseStats = async () => {
     return null;
   }
 };
+
+// Reset menu status for all messes (run at midnight)
+export const resetAllMenuStatus = async () => {
+  try {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayString = yesterday.toISOString().split("T")[0];
+
+    const messesRef = collection(db, "messes");
+    const q = query(messesRef, where("lastMenuUpdate", "<=", yesterdayString));
+    const snapshot = await getDocs(q);
+
+    const updatePromises = [];
+    snapshot.forEach((doc) => {
+      updatePromises.push(
+        updateDoc(doc.ref, {
+          menuUpdatedToday: false,
+        })
+      );
+    });
+
+    await Promise.all(updatePromises);
+    console.log(`✅ Reset menu status for ${snapshot.size} messes`);
+    return { success: true, updated: snapshot.size };
+  } catch (error) {
+    console.error("❌ Error resetting menu status:", error);
+    return { success: false, error: error.message };
+  }
+};

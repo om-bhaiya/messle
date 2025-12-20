@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { importMessesFromJSON } from "../utils/importMessesFromJSON";
+import { collection, getDocs, updateDoc } from "firebase/firestore";
+import { db } from "../services/firebase";
 
 const ImportPage = () => {
   const [status, setStatus] = useState("");
@@ -17,6 +19,35 @@ const ImportPage = () => {
       setStatus(`✅ Successfully imported ${result.count} messes!`);
     } else {
       setStatus(`❌ Import failed: ${result.message}`);
+    }
+  };
+
+  const handleUpdateMesses = async () => {
+    setLoading(true);
+    setStatus("Updating mess documents with new fields...");
+
+    try {
+      const messesSnapshot = await getDocs(collection(db, "messes"));
+      const promises = [];
+
+      messesSnapshot.forEach((doc) => {
+        promises.push(
+          updateDoc(doc.ref, {
+            menuUpdatedToday: false,
+            lastMenuUpdate: "2025-01-01",
+          })
+        );
+      });
+
+      await Promise.all(promises);
+
+      setLoading(false);
+      setStatus(
+        `✅ Successfully updated ${messesSnapshot.size} messes with new fields!`
+      );
+    } catch (error) {
+      setLoading(false);
+      setStatus(`❌ Update failed: ${error.message}`);
     }
   };
 
@@ -51,6 +82,24 @@ const ImportPage = () => {
         }}
       >
         {loading ? "Importing..." : "Import Messes"}
+      </button>
+
+      <button
+        onClick={handleUpdateMesses}
+        disabled={loading}
+        style={{
+          background: "#059669",
+          border: "none",
+          padding: "12px 24px",
+          borderRadius: "8px",
+          fontSize: "16px",
+          fontWeight: "600",
+          cursor: loading ? "not-allowed" : "pointer",
+          opacity: loading ? 0.6 : 1,
+          marginTop: "12px",
+        }}
+      >
+        {loading ? "Updating..." : "Update Mess Fields"}
       </button>
 
       {status && (

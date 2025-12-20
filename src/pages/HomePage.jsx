@@ -27,31 +27,15 @@ const HomePage = () => {
   const [todayVisitors, setTodayVisitors] = useState(0);
   const [activeUsers, setActiveUsers] = useState(0);
 
-  // Fetch messes
+  // Fetch messes (OPTIMIZED - NO MENU CHECKS)
   useEffect(() => {
     const fetchMesses = async () => {
       setLoading(true);
       const data = await getMessesByCity("Kota");
 
-      // Check if each mess has today's menu
-      const today = new Date().toISOString().split("T")[0];
-      const messesWithMenuStatus = await Promise.all(
-        data.map(async (mess) => {
-          const menu = await getTodayMenu(mess.id);
-          // Check both date AND if updatedAt is today
-          const isMenuToday =
-            menu &&
-            menu.date === today &&
-            menu.updatedAt &&
-            isToday(menu.updatedAt);
-          return {
-            ...mess,
-            menuUpdatedToday: isMenuToday,
-          };
-        })
-      );
-
-      setMesses(messesWithMenuStatus);
+      // No need to check menus individually anymore!
+      // The menuUpdatedToday field is already in mess documents
+      setMesses(data);
       setLoading(false);
     };
 
