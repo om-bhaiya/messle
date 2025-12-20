@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react";
 import { Filter } from "lucide-react";
 import MessCard from "../components/MessCard";
+
 import { getMessesByCity, getTodayMenu } from "../services/database";
+import {
+  trackVisitor,
+  updatePresence,
+  getTodayVisitorCount,
+  getActiveUsersCount,
+  fetchAndCacheCounts,
+} from "../services/analytics";
+
 import { getUserLocation, calculateDistance } from "../utils/distance";
 import { sortMessesByScore } from "../utils/ranking";
 import { isToday } from "../utils/dateHelpers";
@@ -14,6 +23,9 @@ const HomePage = () => {
   const [selectedDistance, setSelectedDistance] = useState("all");
   const [selectedPrice, setSelectedPrice] = useState("all");
   const [selectedRating, setSelectedRating] = useState("all");
+
+  const [todayVisitors, setTodayVisitors] = useState(0);
+  const [activeUsers, setActiveUsers] = useState(0);
 
   // Fetch messes
   useEffect(() => {
@@ -44,6 +56,50 @@ const HomePage = () => {
     };
 
     fetchMesses();
+  }, []);
+
+  // Track visitor and update presence (OPTIMIZED)
+  useEffect(() => {
+    // Track this visit (non-blocking, runs in background)
+    trackVisitor();
+
+    // Update presence every 3 minutes (reduced from 2)
+    const presenceInterval = setInterval(() => {
+      updatePresence();
+    }, 3 * 60 * 1000); // 3 minutes
+
+    // Cleanup on unmount
+    return () => clearInterval(presenceInterval);
+  }, []);
+
+  // Fetch analytics data (OPTIMIZED WITH CACHING)
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      // Try to get from cache first
+      const visitors = await getTodayVisitorCount();
+      const active = await getActiveUsersCount();
+
+      setTodayVisitors(visitors);
+      setActiveUsers(active);
+
+      // Fetch fresh data and update cache in background
+      fetchAndCacheCounts();
+    };
+
+    // Fetch immediately
+    fetchAnalytics();
+
+    // Refresh every 5 minutes (reduced from 30 seconds)
+    const analyticsInterval = setInterval(() => {
+      fetchAndCacheCounts().then((counts) => {
+        if (counts) {
+          setTodayVisitors(counts.visitors);
+          setActiveUsers(counts.active);
+        }
+      });
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(analyticsInterval);
   }, []);
 
   // Request location when distance filter is used
@@ -178,6 +234,28 @@ const HomePage = () => {
         <span style={{ fontSize: "12px", opacity: "0.8" }}>
           Prices, ratings, today's food
         </span>
+
+        {/* Analytics Display */}
+        <div
+          style={{
+            marginTop: "12px",
+            display: "flex",
+            gap: "16px",
+            fontSize: "11px",
+            opacity: "0.9",
+          }}
+        >
+          <div>
+            <span style={{ opacity: "0.7" }}>Today's visitors: </span>
+            <span style={{ fontWeight: "600" }}>{todayVisitors}</span>
+          </div>
+          <div>
+            <span style={{ opacity: "0.7" }}>Online now: </span>
+            <span style={{ fontWeight: "600", color: "#4ade80" }}>
+              {activeUsers}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}

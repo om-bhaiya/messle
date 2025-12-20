@@ -17,12 +17,11 @@ This project follows semantic versioning where applicable.
 
 ---
 
-## [0.4.0] - 2025-12-20
+## [0.5.0] - 2025-12-20
 
 ### Added
 
-- Weighted Algorithm to rank mess on the home page.
-- Added Last Updated tags for today's menu on mess detail page and on mess cards on home page.
+- Added user count, passive and active (passive=> total unique users visited the website in a day; active => Total online users)
 
 ### Changed
 
