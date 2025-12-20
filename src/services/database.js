@@ -86,7 +86,6 @@ export const getTodayMenu = async (messId) => {
 };
 
 // Update today's menu and services
-// Update today's menu and services
 export const updateTodayMenu = async (messId, menuData, services) => {
   try {
     const today = new Date().toISOString().split("T")[0];

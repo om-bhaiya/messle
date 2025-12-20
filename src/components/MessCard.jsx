@@ -124,11 +124,6 @@ const MessCard = ({ mess, userLocation }) => {
         </div>
       )}
 
-      {/* Temporary - Remove in production */}
-      <div style={{ fontSize: "10px", color: "#999", marginTop: "4px" }}>
-        Score: {calculateMessScore(mess).toFixed(1)}
-      </div>
-
       {/* Rating */}
       <div
         style={{

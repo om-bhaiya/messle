@@ -11,20 +11,18 @@ This project follows semantic versioning where applicable.
 
 ### Added
 
-- Weighted Algorithm to rank mess on the home page.
-- Added Last Updated tags for today's menu on mess detail page and on mess cards on home page.
-
 ### Changed
 
 ### Fixed
 
 ---
 
-## [0.3.0] - 2025-12-19
+## [0.4.0] - 2025-12-20
 
 ### Added
 
-- Swipeable photo gallery for mess images.
+- Weighted Algorithm to rank mess on the home page.
+- Added Last Updated tags for today's menu on mess detail page and on mess cards on home page.
 
 ### Changed
 
