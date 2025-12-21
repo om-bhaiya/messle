@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Star, Phone, MapPin, Edit } from "lucide-react";
+import { ArrowLeft, Star, Phone, MapPin, Edit, Heart } from "lucide-react";
 import ImageLightbox from "../components/ImageLightbox";
 import { getRelativeTime, isToday } from "../utils/dateHelpers";
+import { isFavorite, toggleFavorite } from "../services/favorites";
 
 import {
   getMessById,
@@ -36,6 +37,8 @@ const MessDetailPage = () => {
   const [showLightbox, setShowLightbox] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
+  const [favorite, setFavorite] = useState(false);
+
   // Optimize Cloudinary image URLs
   const optimizeImageUrl = (url, width = 800) => {
     if (!url || !url.includes("cloudinary.com")) return url;
@@ -53,6 +56,11 @@ const MessDetailPage = () => {
 
       setMess(messData);
       setTodayMenu(menuData);
+
+      // Set favorite status
+      if (messData) {
+        setFavorite(isFavorite(messId));
+      }
 
       // Check if user already rated
       const rated = hasUserRated(messId);
@@ -249,7 +257,57 @@ const MessDetailPage = () => {
           <ArrowLeft size={20} />
           <span style={{ fontSize: "14px" }}>Back</span>
         </button>
-        <h1 style={{ fontSize: "20px", fontWeight: "600" }}>{mess.name}</h1>
+
+        {/* Title with Heart */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            marginBottom: "4px",
+          }}
+        >
+          <h1 style={{ fontSize: "20px", fontWeight: "600", flex: 1 }}>
+            {mess.name}
+          </h1>
+          {/* Heart Button */}
+          <button
+            onClick={() => {
+              const newStatus = toggleFavorite(messId);
+              setFavorite(newStatus);
+            }}
+            style={{
+              background: "rgba(255, 255, 255, 0.1)",
+              border: "none",
+              borderRadius: "50%",
+              width: "40px",
+              height: "40px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
+              e.currentTarget.style.transform = "scale(1.1)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+              e.currentTarget.style.transform = "scale(1)";
+            }}
+          >
+            <Heart
+              size={22}
+              style={{
+                fill: favorite ? "#ef4444" : "none",
+                color: favorite ? "#ef4444" : "white",
+                transition: "all 0.2s",
+              }}
+            />
+          </button>
+        </div>
+
         <p style={{ fontSize: "13px", opacity: "0.8", marginTop: "2px" }}>
           {mess.area}, Kota
         </p>

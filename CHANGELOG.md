@@ -17,6 +17,16 @@ This project follows semantic versioning where applicable.
 
 ---
 
+## [0.6.1] - 2025-12-21
+
+### Added
+
+-Added heart/unheart feature, this allows user to heart their favorite/where they eat messes and instantly check what's on the menu without having them scroll the mess list and find their mess.
+
+### Changed
+
+### Fixed
+
 ## [0.6.0] - 2025-12-21
 
 ### Added

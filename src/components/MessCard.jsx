@@ -1,11 +1,20 @@
-import { Star, MapPin } from "lucide-react";
+import { Star, MapPin, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDistance } from "../utils/distance";
 import { calculateMessScore } from "../utils/ranking";
 import { isToday } from "../utils/dateHelpers";
+import { useState } from "react";
+import { isFavorite, toggleFavorite } from "../services/favorites";
 
 const MessCard = ({ mess, userLocation }) => {
   const navigate = useNavigate();
+  const [favorite, setFavorite] = useState(isFavorite(mess.id));
+
+  const handleFavoriteClick = (e) => {
+    e.stopPropagation(); // Prevent card click
+    const newStatus = toggleFavorite(mess.id);
+    setFavorite(newStatus);
+  };
 
   // Optimize Cloudinary image URLs
   const optimizeImageUrl = (url, width = 400) => {
@@ -87,7 +96,38 @@ const MessCard = ({ mess, userLocation }) => {
         }}
       >
         <div style={{ flex: 1 }}>
-          <h3 style={{ fontSize: "16px", fontWeight: "600" }}>{mess.name}</h3>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <h3 style={{ fontSize: "16px", fontWeight: "600" }}>{mess.name}</h3>
+            {/* Heart Button */}
+            <button
+              onClick={handleFavoriteClick}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "transform 0.2s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = "scale(1.1)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.transform = "scale(1)")
+              }
+            >
+              <Heart
+                size={18}
+                style={{
+                  fill: favorite ? "#ef4444" : "none",
+                  color: favorite ? "#ef4444" : "#ccc",
+                  transition: "all 0.2s",
+                }}
+              />
+            </button>
+          </div>
           <div
             style={{
               fontSize: "12px",

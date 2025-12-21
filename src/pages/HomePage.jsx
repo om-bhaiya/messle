@@ -15,6 +15,8 @@ import { getUserLocation, calculateDistance } from "../utils/distance";
 import { sortMessesByScore } from "../utils/ranking";
 import { isToday } from "../utils/dateHelpers";
 
+import { getFavorites } from "../services/favorites";
+
 const HomePage = () => {
   const [messes, setMesses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -178,31 +180,50 @@ const HomePage = () => {
       return distanceMatch && priceMatch && ratingMatch;
     })
     .sort((a, b) => {
-      // Always sort by distance if location is available
+      const favorites = getFavorites();
+      const aIsFavorite = favorites.includes(a.id);
+      const bIsFavorite = favorites.includes(b.id);
+
+      // Check if any filter is active
+      const filtersActive =
+        selectedDistance !== "all" ||
+        selectedPrice !== "all" ||
+        selectedRating !== "all";
+
+      // PRIORITY 1: Favorites (only when NO filters active)
+      if (!filtersActive) {
+        if (aIsFavorite && !bIsFavorite) return -1;
+        if (!aIsFavorite && bIsFavorite) return 1;
+      }
+
+      // PRIORITY 2: Distance (if filter active OR location available)
       if (
         userLocation &&
         a.distance !== undefined &&
         b.distance !== undefined
       ) {
-        // If distance filter is active, respect it
+        // If distance filter is active, sort by distance
         if (selectedDistance !== "all") {
           return a.distance - b.distance;
         }
 
-        // Otherwise, use ranking algorithm but boost nearby messes
-        const sortedByScore = sortMessesByScore([a, b]);
+        // If no filters but location available, use hybrid approach
+        if (!filtersActive) {
+          // Both are favorites or both are not - use ranking with distance boost
+          const sortedByScore = sortMessesByScore([a, b]);
 
-        // If distances are very different (>2km), prioritize closer mess
-        const distanceDiff = Math.abs(a.distance - b.distance);
-        if (distanceDiff > 2) {
-          return a.distance - b.distance;
+          // If distances are very different (>2km), prioritize closer mess
+          const distanceDiff = Math.abs(a.distance - b.distance);
+          if (distanceDiff > 2) {
+            return a.distance - b.distance;
+          }
+
+          // Otherwise use score
+          return sortedByScore[0].id === a.id ? -1 : 1;
         }
-
-        // Otherwise use score
-        return sortedByScore[0].id === a.id ? -1 : 1;
       }
 
-      // No location available, use ranking algorithm only
+      // PRIORITY 3: Ranking algorithm (when filters active or no location)
       const sortedByScore = sortMessesByScore([a, b]);
       return sortedByScore[0].id === a.id ? -1 : 1;
     });
@@ -559,7 +580,16 @@ const HomePage = () => {
             >
               {filteredMesses.length} mess
               {filteredMesses.length !== 1 ? "es" : ""} found
-              {userLocation && " • Sorted by distance"}
+              {getFavorites().length > 0 &&
+                selectedDistance === "all" &&
+                selectedPrice === "all" &&
+                selectedRating === "all" &&
+                " • ❤️ Favorites first"}
+              {userLocation &&
+                selectedDistance === "all" &&
+                selectedPrice === "all" &&
+                selectedRating === "all" &&
+                " • Sorted by distance"}
               {selectedDistance !== "all" && ` within ${selectedDistance} km`}
             </p>
             {filteredMesses.map((mess) => (
