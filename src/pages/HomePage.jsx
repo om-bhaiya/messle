@@ -27,6 +27,8 @@ const HomePage = () => {
   const [todayVisitors, setTodayVisitors] = useState(0);
   const [activeUsers, setActiveUsers] = useState(0);
 
+  const [locationPermissionAsked, setLocationPermissionAsked] = useState(false);
+
   // Fetch messes (OPTIMIZED - NO MENU CHECKS)
   useEffect(() => {
     const fetchMesses = async () => {
@@ -40,6 +42,45 @@ const HomePage = () => {
     };
 
     fetchMesses();
+  }, []);
+
+  // Request location on page load
+  useEffect(() => {
+    const requestLocation = async () => {
+      try {
+        // Always try to get location (browser will handle permission)
+        const location = await getUserLocation();
+
+        // Success - got location
+        setUserLocation(location);
+        setLocationError(false);
+
+        // Cache location for this session
+        sessionStorage.setItem("userLat", location.lat.toString());
+        sessionStorage.setItem("userLng", location.lng.toString());
+      } catch (error) {
+        // Failed to get location
+        console.error("Location error:", error);
+
+        // Check if we have cached location
+        const cachedLat = sessionStorage.getItem("userLat");
+        const cachedLng = sessionStorage.getItem("userLng");
+
+        if (cachedLat && cachedLng) {
+          // Use cached location
+          setUserLocation({
+            lat: parseFloat(cachedLat),
+            lng: parseFloat(cachedLng),
+          });
+          setLocationError(false);
+        } else {
+          // No cached location, show error
+          setLocationError(true);
+        }
+      }
+    };
+
+    requestLocation();
   }, []);
 
   // Track visitor and update presence (OPTIMIZED)
@@ -86,24 +127,10 @@ const HomePage = () => {
     return () => clearInterval(analyticsInterval);
   }, []);
 
-  // Request location when distance filter is used
-  const handleDistanceFilterChange = async (value) => {
+  const handleDistanceFilterChange = (value) => {
     setSelectedDistance(value);
-
-    if (value !== "all" && !userLocation && !locationError) {
-      try {
-        const location = await getUserLocation();
-        setUserLocation(location);
-      } catch (error) {
-        console.error("Location error:", error);
-        setLocationError(true);
-        alert("Could not get your location. Showing all messes.");
-        setSelectedDistance("all");
-      }
-    }
   };
 
-  // Calculate distances and filter
   // Calculate distances and filter
   const filteredMesses = messes
     .map((mess) => {
@@ -151,17 +178,31 @@ const HomePage = () => {
       return distanceMatch && priceMatch && ratingMatch;
     })
     .sort((a, b) => {
-      // If distance filter is active, sort by distance
+      // Always sort by distance if location is available
       if (
-        selectedDistance !== "all" &&
         userLocation &&
         a.distance !== undefined &&
         b.distance !== undefined
       ) {
-        return a.distance - b.distance;
+        // If distance filter is active, respect it
+        if (selectedDistance !== "all") {
+          return a.distance - b.distance;
+        }
+
+        // Otherwise, use ranking algorithm but boost nearby messes
+        const sortedByScore = sortMessesByScore([a, b]);
+
+        // If distances are very different (>2km), prioritize closer mess
+        const distanceDiff = Math.abs(a.distance - b.distance);
+        if (distanceDiff > 2) {
+          return a.distance - b.distance;
+        }
+
+        // Otherwise use score
+        return sortedByScore[0].id === a.id ? -1 : 1;
       }
 
-      // Otherwise, use ranking algorithm
+      // No location available, use ranking algorithm only
       const sortedByScore = sortMessesByScore([a, b]);
       return sortedByScore[0].id === a.id ? -1 : 1;
     });
@@ -210,14 +251,58 @@ const HomePage = () => {
       <div
         style={{ background: "#3b2f2f", color: "white", padding: "14px 16px" }}
       >
-        <h1
-          style={{ fontSize: "18px", fontWeight: "600", marginBottom: "2px" }}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          }}
         >
-          Messes in Kota
-        </h1>
-        <span style={{ fontSize: "12px", opacity: "0.8" }}>
-          Prices, ratings, today's food
-        </span>
+          <div>
+            <h1
+              style={{
+                fontSize: "18px",
+                fontWeight: "600",
+                marginBottom: "2px",
+              }}
+            >
+              Messes in Kota
+            </h1>
+            <span style={{ fontSize: "12px", opacity: "0.8" }}>
+              Prices, ratings, today's food
+            </span>
+          </div>
+
+          {/* Location Status */}
+          {userLocation && (
+            <div
+              style={{
+                background: "rgba(74, 222, 128, 0.2)",
+                padding: "4px 10px",
+                borderRadius: "12px",
+                fontSize: "11px",
+                color: "#4ade80",
+                fontWeight: "600",
+              }}
+            >
+              📍 Showing Near You
+            </div>
+          )}
+          {locationError && (
+            <div
+              style={{
+                background: "rgba(239, 68, 68, 0.2)",
+                padding: "4px 10px",
+                borderRadius: "12px",
+                fontSize: "11px",
+                color: "#ef4444",
+                fontWeight: "600",
+              }}
+            >
+              📍 Location Off
+            </div>
+          )}
+        </div>
 
         {/* Analytics Display */}
         <div
@@ -311,6 +396,160 @@ const HomePage = () => {
         </select>
       </div>
 
+      {/* Location Error Message - Enhanced */}
+      {locationError && (
+        <div
+          style={{
+            background: "linear-gradient(135deg, #fff9e6 0%, #fef3c7 100%)",
+            padding: "16px",
+            borderBottom: "2px solid #f4c430",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "12px",
+              marginBottom: "12px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "32px",
+                animation: "pulse 2s infinite",
+              }}
+            >
+              📍
+            </div>
+            <div style={{ flex: 1 }}>
+              <div
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#3b2f2f",
+                  marginBottom: "6px",
+                }}
+              >
+                Enable Location for Better Results
+              </div>
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "#666",
+                  lineHeight: "1.6",
+                }}
+              >
+                See distances to messes near you!
+              </div>
+            </div>
+          </div>
+
+          {/* Visual Guide */}
+          <div
+            style={{
+              background: "white",
+              borderRadius: "8px",
+              padding: "12px",
+              fontSize: "12px",
+              color: "#3b2f2f",
+              lineHeight: "1.6",
+              marginBottom: "10px",
+              border: "1px solid #f4c430",
+            }}
+          >
+            <div style={{ fontWeight: "600", marginBottom: "8px" }}>
+              How to enable:
+            </div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "4px",
+              }}
+            >
+              <span style={{ fontSize: "16px" }}>1️⃣</span>
+              <span>
+                Click the <strong style={{ color: "#f59e0b" }}>🛈</strong> or{" "}
+                <strong style={{ color: "#f59e0b" }}>🔒</strong> icon next to
+                the URL
+              </span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "4px",
+              }}
+            >
+              <span style={{ fontSize: "16px" }}>2️⃣</span>
+              <span>Find "Location" permissions</span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "4px",
+              }}
+            >
+              <span style={{ fontSize: "16px" }}>3️⃣</span>
+              <span>
+                Select <strong style={{ color: "#059669" }}>"Allow"</strong>
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "16px" }}>4️⃣</span>
+              <span>Click "Retry" below</span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              // Clear everything and force reload
+              sessionStorage.clear();
+              window.location.reload();
+            }}
+            style={{
+              background: "#f4c430",
+              border: "none",
+              padding: "10px",
+              borderRadius: "8px",
+              fontSize: "13px",
+              fontWeight: "600",
+              cursor: "pointer",
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+            }}
+          >
+            <span>🔄</span>
+            <span>Reload Page</span>
+          </button>
+
+          <div
+            style={{
+              fontSize: "11px",
+              color: "#999",
+              textAlign: "center",
+              marginTop: "8px",
+            }}
+          >
+            You can still browse without location
+          </div>
+
+          <style>{`
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+      }
+    `}</style>
+        </div>
+      )}
+
       {/* Mess List */}
       <div style={{ padding: "14px" }}>
         {filteredMesses.length > 0 ? (
@@ -320,9 +559,8 @@ const HomePage = () => {
             >
               {filteredMesses.length} mess
               {filteredMesses.length !== 1 ? "es" : ""} found
-              {userLocation &&
-                selectedDistance !== "all" &&
-                ` within ${selectedDistance} km`}
+              {userLocation && " • Sorted by distance"}
+              {selectedDistance !== "all" && ` within ${selectedDistance} km`}
             </p>
             {filteredMesses.map((mess) => (
               <MessCard key={mess.id} mess={mess} userLocation={userLocation} />

@@ -17,6 +17,16 @@ This project follows semantic versioning where applicable.
 
 ---
 
+## [0.6.0] - 2025-12-21
+
+### Added
+
+### Changed
+
+-Changed how we get the user location. Now instead of getting location and displaying location on mess card when user click on distance filter, we get location when someone opens up the website. And added helper visuals to teach user how to open the location if it's blocked through browser. And a helper text to let users know is their location on/off
+
+### Fixed
+
 ## [0.5.2] - 2025-12-20
 
 ### Added
