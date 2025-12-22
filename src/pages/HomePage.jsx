@@ -17,6 +17,12 @@ import { isToday } from "../utils/dateHelpers";
 
 import { getFavorites } from "../services/favorites";
 
+import {
+  requestNotificationPermission,
+  hasNotificationPermission,
+  hasNotificationDenied,
+} from "../services/notifications";
+
 const HomePage = () => {
   const [messes, setMesses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +36,30 @@ const HomePage = () => {
   const [activeUsers, setActiveUsers] = useState(0);
 
   const [locationPermissionAsked, setLocationPermissionAsked] = useState(false);
+
+  const [showNotificationBanner, setShowNotificationBanner] = useState(false);
+  const [notificationStatus, setNotificationStatus] = useState("default");
+
+  // Check notification permission on load
+  useEffect(() => {
+    const checkNotificationPermission = () => {
+      if (hasNotificationPermission()) {
+        setNotificationStatus("granted");
+        setShowNotificationBanner(false);
+      } else if (hasNotificationDenied()) {
+        setNotificationStatus("denied");
+        setShowNotificationBanner(false);
+      } else {
+        // Not asked yet - show banner after 5 seconds
+        setTimeout(() => {
+          setShowNotificationBanner(true);
+          setNotificationStatus("default");
+        }, 5000);
+      }
+    };
+
+    checkNotificationPermission();
+  }, []);
 
   // Fetch messes (OPTIMIZED - NO MENU CHECKS)
   useEffect(() => {
@@ -568,6 +598,96 @@ const HomePage = () => {
         50% { transform: scale(1.1); opacity: 0.8; }
       }
     `}</style>
+        </div>
+      )}
+
+      {/* Notification Permission Banner */}
+      {showNotificationBanner && notificationStatus === "default" && (
+        <div
+          style={{
+            background: "linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)",
+            padding: "16px",
+            borderBottom: "2px solid #0ea5e9",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "12px",
+              marginBottom: "12px",
+            }}
+          >
+            <div style={{ fontSize: "32px" }}>🔔</div>
+            <div style={{ flex: 1 }}>
+              <div
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#0c4a6e",
+                  marginBottom: "6px",
+                }}
+              >
+                Get Daily Menu Updates
+              </div>
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "#075985",
+                  lineHeight: "1.6",
+                }}
+              >
+                Receive notifications twice daily about updated menus near you
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              onClick={async () => {
+                const result = await requestNotificationPermission();
+                if (result.success) {
+                  setNotificationStatus("granted");
+                  setShowNotificationBanner(false);
+                  alert("✅ Notifications enabled! You'll get daily updates.");
+                } else {
+                  alert("❌ " + result.message);
+                }
+              }}
+              style={{
+                flex: 1,
+                background: "#0ea5e9",
+                color: "white",
+                border: "none",
+                padding: "10px",
+                borderRadius: "8px",
+                fontSize: "13px",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
+            >
+              Enable Notifications
+            </button>
+            <button
+              onClick={() => {
+                setShowNotificationBanner(false);
+                localStorage.setItem("notificationBannerDismissed", "true");
+              }}
+              style={{
+                flex: 1,
+                background: "transparent",
+                color: "#0c4a6e",
+                border: "1px solid #0ea5e9",
+                padding: "10px",
+                borderRadius: "8px",
+                fontSize: "13px",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
+            >
+              Maybe Later
+            </button>
+          </div>
         </div>
       )}
 
