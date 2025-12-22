@@ -9,16 +9,16 @@ createRoot(document.getElementById("root")).render(
   </StrictMode>
 );
 
-// Register service worker
+// Register COMBINED service worker (handles both caching AND notifications)
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
-      .register("/sw.js")
+      .register("/firebase-messaging-sw.js") // Changed from /sw.js
       .then((registration) => {
-        console.log("SW registered:", registration);
+        console.log("✅ SW registered:", registration);
       })
       .catch((error) => {
-        console.log("SW registration failed:", error);
+        console.log("❌ SW registration failed:", error);
       });
   });
 }
